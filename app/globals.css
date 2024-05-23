@@ -31,3 +31,60 @@ body {
     text-wrap: balance;
   }
 }
+
+.target {
+  border-radius: 20px;
+  box-shadow: 16px 14px 20px #0000002c;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.target:hover {
+  animation: floating 1s alternate infinite;
+}
+
+@keyframes floating {
+  from {
+    bottom: -10px;
+  }
+  to {
+    bottom: 20px;
+  }
+}
+
+/* https://www.youtube.com/watch?v=wqb0kaRdyyA */
+/* .target::after {
+  content: "";
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0); 
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: yellow;
+} */
+
+/* .target::before {
+  content: "";
+  background-image: conic-gradient(yellow 20deg, transparent 120deg);
+  width: 150%;
+  height: 150%;
+  position: absolute;
+  animation: rotate 2s linear infinite;
+} */
+
+/* @keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(-360deg);
+  }
+} */
