@@ -2,22 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
 body {
-  color: rgb(var(--foreground-rgb));
+  color: white;
 }
 
 @layer utilities {
@@ -165,3 +151,68 @@ body {
     left: 50%;
   }
 } */
+
+.slider-container {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: linear-gradient(to top right, #8b5cf6, #ec4899);
+}
+
+.slider {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  overflow: hidden;
+  /* background-color: #8b5cf6; */
+}
+
+.slider-item {
+  position: absolute;
+  width: 200px;
+  height: 320px;
+  text-align: justify;
+  border-radius: 10px;
+  padding: 20px;
+  transition: 0.5s;
+  left: calc(50% - 110px);
+  top: 0;
+  color: black;
+  background-color: white;
+}
+
+.head-item {
+  /* height: 100%; */
+  position: absolute;
+  text-align: justify;
+  transition: 0.5s;
+  font-size: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.clothes-item {
+  position: absolute;
+  text-align: justify;
+  transition: 0.5s;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#next,
+#prev {
+  position: absolute;
+  top: 40%;
+  border: none;
+  left: 50px;
+  padding: 5px 10px;
+  border-radius: 100%;
+  z-index: 9999999999999999;
+}
+
+#next {
+  left: unset;
+  right: 50px;
+}
