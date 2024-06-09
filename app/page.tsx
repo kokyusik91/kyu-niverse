@@ -1,6 +1,48 @@
 'use client';
 import Image from 'next/image';
-import { SyntheticEvent, useState } from 'react';
+import { useState } from 'react';
+import { CardSlider } from './components/slider';
+import SkillSet from './components/skillset';
+import Phone from './components/phone';
+import Skillset from './components/skillset';
+import Health from './components/health';
+import { SmallCardSlider } from './components/slidersmall';
+import HeadSlider from './components/headSlider';
+import ImageSlider from './components/ImageSlider';
+import PantsSlider from './components/pantsSlider';
+
+const PANTS = [
+  '/zard.png',
+  '/kitty.png',
+  '/athlete.png',
+  '/jeans.png',
+  '/watthe.png',
+];
+
+const CLOTHES = [
+  '/crown.png',
+  '/zombie.png',
+  '/stussy2.png',
+  '/stuussy.png',
+  '/supreme.png',
+  '/supreme2.png',
+  '/dice.png',
+  '/8ball.png',
+];
+
+const MANHEAD = [
+  '👦🏼',
+  '👶🏻',
+  '🧒🏻',
+  '👩🏼',
+  '👨🏼',
+  '🧔🏻‍♂️',
+  '👩🏼‍🦱',
+  '👩🏽‍🦰',
+  '👨🏼‍🦰',
+  '👱🏼‍♀️',
+  '🧓🏼',
+];
 
 const KKS = [
   '스투시',
@@ -13,21 +55,13 @@ const KKS = [
   '세이',
   'dkdkdk',
   '뭐',
-  '스투시2',
+  '스투시',
 ];
 
 export default function Home() {
-  const [mono, setMono] = useState(true);
-
-  const [first, setFirst] = useState(false);
-
-  const handleFirstBlur = (e: SyntheticEvent) => {
-    setFirst(true);
-  };
-
-  const handleFirstBlur2 = (e: SyntheticEvent) => {
-    setFirst(false);
-  };
+  const [mono, setMono] = useState(false);
+  const [kofetch, setKofetch] = useState(false);
+  const [brunch, setBrunch] = useState(false);
 
   const toggleColor = () => {
     setMono((prev) => !prev);
@@ -39,10 +73,25 @@ export default function Home() {
     return color;
   };
 
+  const handleKofetch = () => {
+    setKofetch(true);
+  };
+
+  const handleKofetch2 = () => {
+    setKofetch(false);
+  };
+
+  const handleBrunch = () => {
+    setBrunch(true);
+  };
+  const handleBrunch2 = () => {
+    setBrunch(false);
+  };
+
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24 bg-red-300'>
+    <main className='flex min-h-screen flex-col items-center justify-between p-24 bg-yellow-200'>
       <div className='w-full flex text-left'>
-        <Image
+        {/* <Image
           className='z-10 relative animate-[wiggle_.01s_ease-in-out_infinite]'
           src={'/scv.webp'}
           width={119}
@@ -69,13 +118,13 @@ export default function Home() {
           width={119}
           height={160}
           alt='starcraft scv'
-        />
+        /> */}
       </div>
 
       <div className='w-full text-right'>
         <button
           onClick={toggleColor}
-          className={`mb-3 p-5 text-xl rounded-lg font-bold transition-all ${
+          className={`mb-3 p-5 text-xl rounded-lg font-bold transition-all ease-in-out ${
             mono ? 'bg-red-500 text-zinc-200' : 'bg-white text-zinc-800'
           }`}
         >
@@ -87,44 +136,33 @@ export default function Home() {
           <div className='w-2/6 h-full flex flex-col bg-white gap-5'>
             <div className='w-full flex grow gap-5'>
               <div className='w-1/2 h-full flex flex-col bg-white gap-5'>
-                <div
-                  onMouseOver={handleFirstBlur}
-                  onMouseOut={handleFirstBlur2}
-                  className={`target relative h-1/4 transition-all`}
+                <a
+                  href='/polio.pdf'
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  download
+                  className='target relative h-1/4 transition-all'
                 >
-                  <div
-                    className={`w-full h-full flex items-center justify-center ${toggleMonoColor(
-                      'bg-yellow-400'
-                    )} ${first ? 'opacity-40' : 'opacity-100'}`}
-                  >
-                    <h1 className='text-4xl font-extrabold'>고규시키.</h1>
-                  </div>
-                  {
-                    <div
-                      className={`w-full h-full absolute flex items-center justify-center  text-zinc-700 transition-all ${
-                        first ? 'bg-blur-10' : 'opacity-0'
-                      }`}
-                    >
-                      <h1 className='text-3xl text-blue-500 font-extrabold'>
-                        짱입니다!
-                      </h1>
-                    </div>
-                  }
-                </div>
-                <div
-                  className={`target relative grow transition-all ${toggleMonoColor(
-                    'bg-slate-800'
-                  )} `}
-                >
+                  {/* ResumeBox */}
                   <Image
                     className='absolute top-1/2 left-1/2'
                     src={'/resume.jpg'}
                     fill
                     alt='gradient'
                   />
-                  <h1 className='text-5xl font-bold animate-pulse z-10'>
+                  <span className='mr-2 text-5xl font-bold z-10 relative'>
                     RESUME
-                  </h1>
+                  </span>
+                  <span className='text-3xl animate-[3s_roundup_ease-in-out_infinite_alternate-reverse]'>
+                    💾
+                  </span>
+                </a>
+                <div
+                  className={`target relative grow transition-all ${toggleMonoColor(
+                    'bg-slate-800'
+                  )} `}
+                >
+                  <Skillset />
                 </div>
                 <div
                   className={`target h-1/4 transition-all ${toggleMonoColor(
@@ -143,9 +181,30 @@ export default function Home() {
               </div>
               <div
                 className={`target w-1/2 h-full transition-all ${toggleMonoColor(
-                  'bg-purple-400'
+                  'bg-purple-400 '
                 )}`}
-              ></div>
+              >
+                <div className='flex w-full h-full flex-col items-center p-3'>
+                  <HeadSlider data={MANHEAD} />
+                  {/* <Image src={'/hks.png'} alt='멀왕' width={60} height={60} /> */}
+                  <ImageSlider data={CLOTHES} width={200} height={200} />
+                  <PantsSlider data={PANTS} width={150} height={150} />
+                  <div className='relative flex gap-7 top-14 justify-center'>
+                    <Image
+                      src='/j-l.png'
+                      alt='자운드 왼쪽'
+                      width={100}
+                      height={100}
+                    />
+                    <Image
+                      src='/j-r.png'
+                      alt='자운드 오른쪽'
+                      width={100}
+                      height={100}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
             <div
               className={`target h-2/6 transition-all ${toggleMonoColor(
@@ -158,9 +217,9 @@ export default function Home() {
                 <div className='flex items-center'>
                   <div className='h-[48px] m-auto overflow-hidden'>
                     <ul className='textbox'>
-                      {KKS.map((item) => (
+                      {KKS.map((item, index) => (
                         <li
-                          key={item}
+                          key={index}
                           className='textboxchild text-[32px] font-extrabold'
                         >
                           {item}
@@ -183,46 +242,87 @@ export default function Home() {
                 )}`}
               >
                 <Image
-                  className='z-10 relative animate-[wiggle_.01s_ease-in-out_infinite]'
-                  src={'/scv.webp'}
+                  className='z-10 relative animate-[wiggle_.5s_ease-in-out_infinite]'
+                  src={'/medic2.png'}
                   width={119}
                   height={160}
                   alt='starcraft scv'
                 />
                 <h1
-                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/3  text-[220px] ${
+                  className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/3  text-[120px] ${
                     mono ? 'text-zinc-700' : 'text-zinc-200'
                   } font-bold`}
                 >
-                  scv
+                  Medic
                 </h1>
               </div>
               <div
                 className={`target w-1/2 transition-all ${toggleMonoColor(
-                  'bg-emerald-300'
+                  'bg-gradient-to-r  from-indigo-400 to-red-300'
                 )}`}
-              ></div>
+              >
+                <div className='flex items-center justify-center h-full w-full m-0'>
+                  <SmallCardSlider />
+                </div>
+              </div>
               <div className='flex flex-col grow bg-white gap-5'>
                 <div
-                  className={`target flex flex-col grow transition-all ${toggleMonoColor(
+                  onMouseEnter={handleBrunch}
+                  onMouseLeave={handleBrunch2}
+                  className={`relative target flex flex-col grow transition-all ${toggleMonoColor(
                     'bg-sky-400'
                   )}`}
                 >
                   <Image
-                    className='mb-3'
+                    className={`mb-3 transition-all duration-1000 z-50 ${
+                      brunch ? 'translate-x-0' : 'translate-x-[-1000px]'
+                    } ${brunch ? 'rotate-0' : 'rotate-180'} ${
+                      brunch ? 'opacity-1' : 'opacity-0'
+                    }`}
                     src={'/brunch.svg'}
                     width={119}
                     height={160}
                     alt='brunch logo'
                   />
-                  <h1 className='text-lg font-medium'>Brunch</h1>
+                  <h1
+                    className={`transition-all duration-1000 text-lg font-bold ${
+                      brunch ? 'translate-x-0' : 'translate-x-[200px]'
+                    } ${brunch ? 'rotate-0' : 'rotate-180'}`}
+                  >
+                    Brunch
+                  </h1>
+                  <h1
+                    className={`${
+                      brunch ? 'opacity-0' : 'opacity-1'
+                    } transition-all text-5xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/3 `}
+                  >
+                    ✍️
+                  </h1>
                 </div>
                 <div
-                  className={`target h-2/6 transition-all ${toggleMonoColor(
+                  onMouseEnter={handleKofetch}
+                  onMouseLeave={handleKofetch2}
+                  className={`target h-2/6 transition-all 	 ${toggleMonoColor(
                     'bg-teal-400'
                   )}`}
                 >
-                  KoFetch
+                  <div className='flex items-end'>
+                    <h1 className='text-3xl font-extrabold'>Ko</h1>
+                    <span
+                      className={`${
+                        kofetch ? 'translate-x-0' : 'translate-x-[300px] '
+                      } transition-all text-xl font-semibold  duration-1000 ease-in-out`}
+                    >
+                      Fetch
+                    </span>
+                  </div>
+                  <Image
+                    className='ml-2'
+                    src='/npm.webp'
+                    width={120}
+                    height={60}
+                    alt='앤피엠'
+                  />
                 </div>
               </div>
             </div>
@@ -239,7 +339,7 @@ export default function Home() {
                   alt='nasa'
                 />
                 <h1 className='text-[100px] font-extrabold z-10 text-right'>
-                  KYU'S
+                  KYU&apos;S
                   <br /> FE World
                 </h1>
               </div>
@@ -248,8 +348,16 @@ export default function Home() {
                   'bg-violet-400'
                 )}`}
               >
-                {' '}
-                Kyu's BE World
+                <Image
+                  className='absolute top-1/2 left-1/2'
+                  src={'/new-york.jpg'}
+                  fill
+                  alt='new-york'
+                />
+                <h1 className='text-2xl font-extrabold z-10 text-right hover:text-4xl transition-all duration-1000'>
+                  KYU&apos;S
+                  <br /> BE World
+                </h1>
               </div>
               <div
                 className={`target grow h-full transition-all ${toggleMonoColor(
@@ -273,15 +381,30 @@ export default function Home() {
               </div>
               <div
                 className={`target w-1/2 transition-all ${toggleMonoColor(
-                  'bg-lime-400'
+                  'bg-gradient-to-r  from-green-200 to-indigo-300'
                 )}`}
-              ></div>
+              >
+                <Health />
+              </div>
               <div
                 className={`target grow transition-all ${toggleMonoColor(
                   'bg-sky-400'
                 )}`}
               >
-                Infra
+                <div className='flex gap-12'>
+                  <h1 className='text-5xl font-bold animate-[1s_wiggle_infinite]'>
+                    📡
+                  </h1>
+                  <div>
+                    <div className='text-yellow-300 text-xl animate-[1s_connect_ease-in-out_infinite_alternate-reverse]'>
+                      ➡️ ➡️ ➡️
+                    </div>
+                    <div className='text-yellow-300 text-xl animate-[1s_connectreverse_ease-in-out_infinite_alternate-reverse]'>
+                      ⬅️ ⬅️ ⬅️
+                    </div>
+                  </div>
+                  <h1 className='text-5xl font-bold'>💻</h1>
+                </div>
               </div>
             </div>
           </div>
