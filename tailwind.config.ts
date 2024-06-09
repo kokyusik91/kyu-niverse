@@ -37,6 +37,36 @@ const config: Config = {
           '0%, 100%': { transform: 'rotate(-10deg)' },
           '50%': { transform: 'rotate(10deg)' },
         },
+        rollingleft1: {
+          '0%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(-100%)' },
+          '50.01%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        rollingleft2: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-200%)' },
+        },
+        graph: {
+          '0%': { width: '0%' },
+          '100%': { width: '100%' },
+        },
+        wigglewiggle: {
+          '0%': { transform: 'rotate(-50deg)', color: 'white' },
+          '100%': { transform: 'rotate(0deg)', color: '#3B8EF6' },
+        },
+        roundup: {
+          '0%': { opacity: '0', transform: 'translateY(100%)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        connect: {
+          '0%': { opacity: '0.5', transform: 'translateX(-50%)' },
+          '100%': { opacity: '1', transform: 'translateX(50%)' },
+        },
+        connectreverse: {
+          '0%': { opacity: '1', transform: 'translateX(50%)' },
+          '100%': { opacity: '0.5', transform: 'translateX(-50%)' },
+        },
       },
     },
   },
