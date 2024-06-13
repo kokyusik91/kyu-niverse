@@ -29,7 +29,7 @@ export default function ImageSlider({
   return (
     <ul className={`relative w-full h-[170px] z-50`}>
       {data.map((man, index) => (
-        <img
+        <Image
           src={man}
           alt={man}
           width={400}

@@ -29,7 +29,7 @@ export default function PantsSlider({
   return (
     <ul className={`relative w-full h-[200px] top-[-40px]`}>
       {data.map((man, index) => (
-        <img
+        <Image
           src={man}
           alt={man}
           width={200}

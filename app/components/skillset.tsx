@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Image from 'next/image';
 
 type SkillTem = {
   value: string;
@@ -101,7 +102,9 @@ export default function Skillset() {
               onMouseOut={handleFirstBlur2}
               className='w-[50px] h-[50px] shrink-0 mx-2'
             >
-              <img
+              <Image
+                width={50}
+                height={50}
                 src={item.url}
                 alt={item.label}
                 className='w-[50px] h-[50px]'
@@ -117,7 +120,9 @@ export default function Skillset() {
               onMouseOut={handleFirstBlur2}
               className='w-[50px] h-[50px] shrink-0 mx-2'
             >
-              <img
+              <Image
+                width={50}
+                height={50}
                 src={item.url}
                 alt={item.label}
                 className='w-[50px] h-[50px]'
