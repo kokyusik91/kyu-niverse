@@ -32,6 +32,24 @@ jobs:
         env:
           CI: "true"
 
+      - name: Verify AWS CLI installation
+        run: aws --version
+
+      # Verify AWS credentials and access to S3 bucket
+      - name: Verify AWS credentials
+        run: |
+          aws s3 ls s3://kyuniverse --region ap-northeast-2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Remove existing files from S3 bucket
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 rm s3://kyuniverse --recursive --region ap-northeast-2
+
       - name: Deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
