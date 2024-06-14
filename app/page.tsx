@@ -151,9 +151,7 @@ export default function Home() {
                     fill
                     alt="gradient"
                   />
-                  <span className="mr-2 text-5xl font-bold z-10 relative">
-                    RESUME
-                  </span>
+                  <span className="mr-2 text-5xl font-bold z-10 relative"></span>
                   <span className="text-3xl animate-[3s_roundup_ease-in-out_infinite_alternate-reverse]">
                     💾
                   </span>
