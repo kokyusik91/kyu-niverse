@@ -90,9 +90,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24 bg-yellow-200">
-      <h1 className="w-full text-center font-extrabold text-5xl">
-        KYUNIVERSE🥸
-      </h1>
+      <h1 className="w-full text-center font-extrabold text-5xl">KYUNIVERSE</h1>
       <div className="w-full flex text-left">
         {/* <Image
           className='z-10 relative animate-[wiggle_.01s_ease-in-out_infinite]'
