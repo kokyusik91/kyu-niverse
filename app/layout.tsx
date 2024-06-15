@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   metadataBase: new URL('http://kyu-niverse.com'),
   title: '큐니버스 🌏',
-  description: '큐식코의 유니버스에는 무엇이 있을까?',
+  description: '큐식코 유니버스에는 무엇이 있을까?',
   keywords: ['개발', '운동', '책', '자기계발'],
 
   openGraph: {
