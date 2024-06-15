@@ -59,3 +59,15 @@ jobs:
           --recursive \
           --region ap-northeast-2 \
           out s3://kyu-niverse.com
+
+      - name: Notify success via webhook
+        if: success()
+        env:
+          DEPLOY_SLACK_WEBHOOK_URL: ${{ secrets.DEPLOY_SLACK_WEBHOOK_URL }}
+        run: bash ./webhook.sh $DEPLOY_SLACK_WEBHOOK_URL 성공
+
+      - name: Notify failure via webhook
+        if: failure()
+        env:
+          DEPLOY_SLACK_WEBHOOK_URL: ${{ secrets.DEPLOY_SLACK_WEBHOOK_URL }}
+        run: bash ./webhook.sh $DEPLOY_SLACK_WEBHOOK_URL 실패
