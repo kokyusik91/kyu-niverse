@@ -58,4 +58,4 @@ jobs:
           aws s3 cp \
           --recursive \
           --region ap-northeast-2 \
-          out s3://kyu--niverse
+          out s3://kyu-niverse
