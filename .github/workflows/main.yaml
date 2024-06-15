@@ -30,7 +30,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          CI: "true"
+          CI: 'true'
 
       - name: Verify AWS CLI installation
         run: aws --version
@@ -38,7 +38,7 @@ jobs:
       # Verify AWS credentials and access to S3 bucket
       - name: Verify AWS credentials
         run: |
-          aws s3 ls s3://kyuniverse --region ap-northeast-2
+          aws s3 ls s3://kyu-niverse --region ap-northeast-2
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -48,7 +48,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 rm s3://kyuniverse --recursive --region ap-northeast-2
+          aws s3 rm s3://kyu-niverse --recursive --region ap-northeast-2
 
       - name: Deploy
         env:
@@ -58,4 +58,4 @@ jobs:
           aws s3 cp \
           --recursive \
           --region ap-northeast-2 \
-          out s3://kyuniverse
+          out s3://kyu--niverse
