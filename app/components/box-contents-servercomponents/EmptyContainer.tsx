@@ -1,6 +1,4 @@
-import { createContents } from '@/app/utils/action';
-import SubmitButton from '../SubmitButton';
-import Empty from '../box-contents/Empty';
+import Empty from "../box-contents/Empty";
 
 export default function EmptyContainer() {
   return (
@@ -9,6 +7,7 @@ export default function EmptyContainer() {
         <input name='contents' className='text-zinc-800 mr-10 p-3' />
         <SubmitButton />
       </form> */}
+      <h1></h1>
     </Empty>
   );
 }
