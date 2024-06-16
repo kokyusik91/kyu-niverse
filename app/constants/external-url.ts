@@ -13,3 +13,6 @@ export const BEWORLD_NOTION_URL =
 
 export const INFRA_NOTION_URL =
   'https://jamsilcrops-library.notion.site/056bc3c0bdc34d7a9094327e7c854c09';
+
+export const MEDIC_NOTION_URL =
+  'https://jamsilcrops-library.notion.site/Medic-Project-b6c42ee962da431ea964369fe7775552?pvs=4';
