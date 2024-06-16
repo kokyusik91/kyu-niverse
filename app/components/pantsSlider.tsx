@@ -26,7 +26,7 @@ export default function PantsSlider({
     setActiveIndex((prev) => prev - 1);
   };
 
-  const amount = useMemo(() => data?.length, []);
+  const amount = useMemo(() => data?.length, [data?.length]);
 
   return (
     <ul className={`relative w-full h-[200px] top-[-40px]`}>

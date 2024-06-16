@@ -22,7 +22,7 @@ export default function HeadSlider({ data }: { data: string[] }) {
     setView((prev) => !prev);
   };
 
-  const amount = useMemo(() => data?.length, []);
+  const amount = useMemo(() => data?.length, [data?.length]);
 
   return (
     <ul className='mb-4 relative w-full h-[80px] z-90'>
