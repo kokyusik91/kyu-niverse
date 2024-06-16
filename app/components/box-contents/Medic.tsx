@@ -1,6 +1,5 @@
 'use client';
 
-import { useColor } from '@/app/providers/ColorProvider';
 import { ReactNode } from 'react';
 
 type MedicProps = {
@@ -8,10 +7,9 @@ type MedicProps = {
 };
 
 export default function Medic({ children }: MedicProps) {
-  const { generateColor } = useColor();
   return (
     <div
-      className={`target grow transition-all ${generateColor('bg-rose-400')}`}
+      className={`target grow transition-all bg-[url('/code.jpg')] bg-right-top	`}
     >
       {children}
     </div>
