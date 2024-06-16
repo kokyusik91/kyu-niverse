@@ -1,8 +1,9 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 
 const TARGET = 165;
 const PERCENT = Math.floor((165 / 365) * 100);
-console.log('PERCENT', PERCENT);
 export default function Health() {
   const [time, setTime] = useState(1);
   const [animate, setAnimate] = useState(false);

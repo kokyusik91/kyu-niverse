@@ -47,7 +47,8 @@ function Card({
   card,
   distanceFromActiveIndex,
 }: {
-  card: CardData;
+  // card: CardData;
+  card: string;
   distanceFromActiveIndex: number;
 }) {
   return (
@@ -75,36 +76,37 @@ function Card({
       }
       className='slider-item'
     >
-      <h1>{card.title} 🧐</h1>
-      <p>{card.content}</p>
-      {/* <img className='w-full h-full' src={card.content} alt={card.title} /> */}
+      {/* <h1>{card.title} 🧐</h1>
+      <p>{card.content}</p> */}
+      <img className='w-full h-full' src={card} alt={card} />
     </div>
   );
 }
 
-export function SmallCardSlider() {
+type SmallCardSliderProps = {
+  data: string[];
+};
+
+export function SmallCardSlider({ data }: SmallCardSliderProps) {
   const [activeIndex, setActiveIndex] = useState(3);
 
   const distanceFromActiveIndex = (currentIndex: number) => {
     return currentIndex - activeIndex;
   };
 
-  const amount = useMemo(() => fakedata?.length, []);
+  const amount = useMemo(() => data?.length, []);
 
   const handlePrevButton = () => {
-    console.log('클릭1');
     setActiveIndex((prev) => prev - 1);
   };
 
   const handleNextButton = () => {
-    console.log('클릭2');
-
     setActiveIndex((prev) => prev + 1);
   };
 
   return (
     <div className='slider'>
-      {fakedata?.map((item, index) => (
+      {data?.map((item, index) => (
         <Card
           key={index}
           card={item}

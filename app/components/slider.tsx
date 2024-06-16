@@ -92,13 +92,10 @@ export function CardSlider() {
   const amount = useMemo(() => fakedata?.length, []);
 
   const handlePrevButton = () => {
-    console.log('클릭1');
     setActiveIndex((prev) => prev - 1);
   };
 
   const handleNextButton = () => {
-    console.log('클릭2');
-
     setActiveIndex((prev) => prev + 1);
   };
 
