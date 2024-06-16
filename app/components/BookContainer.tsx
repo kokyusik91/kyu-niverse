@@ -1,4 +1,3 @@
-import { DatabaseObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { generateDTO, getQueryFromNotionDBbyId } from '../providers/notion';
 import { SmallCardSlider } from './slidersmall';
 
