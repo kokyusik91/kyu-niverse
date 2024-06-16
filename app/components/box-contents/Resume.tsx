@@ -9,7 +9,7 @@ type ResumeProps = {
 export default function Resume({ children }: ResumeProps) {
   return (
     <a
-      href='/polio.pdf'
+      href='/resume-kokyusik.pdf'
       target='_blank'
       rel='noopener noreferrer'
       download

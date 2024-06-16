@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useColor } from '@/app/providers/ColorProvider';
+import Link from 'next/link';
+import { KOFETCH_NPM_URL } from '@/app/constants/external-url';
 
 export default function Kofetch() {
   const { generateColor } = useColor();
@@ -17,7 +19,9 @@ export default function Kofetch() {
   };
 
   return (
-    <div
+    <Link
+      href={KOFETCH_NPM_URL}
+      target='_blank'
       onMouseEnter={handleKofetch}
       onMouseLeave={handleKofetch2}
       className={`target h-2/6 transition-all ${generateColor('bg-teal-400')}`}
@@ -39,6 +43,6 @@ export default function Kofetch() {
         height={60}
         alt='앤피엠'
       />
-    </div>
+    </Link>
   );
 }

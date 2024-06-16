@@ -16,5 +16,6 @@ export default async function BookContainer() {
     .map((item) => item.files)
     .flat()
     .map((file) => file.file.url);
+
   return <SmallCardSlider data={fileList} />;
 }

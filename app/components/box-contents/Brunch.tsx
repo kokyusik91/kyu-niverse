@@ -1,7 +1,9 @@
 'use client';
 
+import { BRUNCH_URL } from '@/app/constants/external-url';
 import { useColor } from '@/app/providers/ColorProvider';
 import Image from 'next/image';
+import Link from 'next/link';
 import React, { useState } from 'react';
 
 export default function Brunch() {
@@ -16,7 +18,9 @@ export default function Brunch() {
   };
 
   return (
-    <div
+    <Link
+      href={BRUNCH_URL}
+      target='_blank'
       onMouseEnter={handleBrunch}
       onMouseLeave={handleBrunch2}
       className={`relative target flex flex-col grow transition-all ${generateColor(
@@ -48,6 +52,6 @@ export default function Brunch() {
       >
         ✍️
       </h1>
-    </div>
+    </Link>
   );
 }
