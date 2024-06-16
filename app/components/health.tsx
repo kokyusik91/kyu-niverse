@@ -6,26 +6,31 @@ const TARGET = 165;
 const PERCENT = Math.floor((165 / 365) * 100);
 export default function Health() {
   const [time, setTime] = useState(1);
-  const [animate, setAnimate] = useState(false);
-
-  const resetAnimation = () => {
-    setTime(1);
-    setAnimate(!animate); // 애니메이션을 다시 시작하도록 상태 변경
-  };
+  const [animationEnded, setAnimationEnded] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
-    if (time > TARGET) return;
+    if (time > TARGET) {
+      setAnimationEnded(true);
+      return;
+    }
 
     const timer = setInterval(() => {
       setTime((prev) => prev + 1);
     }, 15);
 
     return () => clearInterval(timer);
-  }, [time, animate]);
+  }, [time]);
+
+  const handleRetry = () => {
+    setTime(1);
+    setAnimationEnded(false);
+    setAnimationKey((prev) => prev + 1);
+  };
 
   return (
-    <div className='flex gap-8'>
-      <div>
+    <div className='relative flex gap-8'>
+      <div key={animationKey}>
         <h1 className='text-3xl font-bold mb-3 animate-[2s_roundup_ease-in-out]'>
           헬스 💪🏻
         </h1>
@@ -46,14 +51,22 @@ export default function Health() {
       </div>
       <div>
         <h1 className='text-3xl font-bold'>클라이밍 🧗🏻‍♀️</h1>{' '}
-        <div className='flex justify-end'>
+        <div key={animationKey} className='flex justify-end'>
           <time className='mr-1 text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block text-transparent bg-clip-text animate-[2s_roundup_ease-in-out]'>
             3
           </time>
-          {'  '}
           <h1 className='text-4xl font-bold'>회</h1>
         </div>
       </div>
+
+      <button
+        onClick={handleRetry}
+        className={`absolute text-4xl top-[-12px] right-1/2 transition-all ${
+          animationEnded ? 'opacity-1' : 'opacity-0'
+        }`}
+      >
+        ↩️
+      </button>
     </div>
   );
 }
