@@ -10,6 +10,9 @@ export default function BookStoreContainer() {
           <BookContainer />
         </Suspense>
       </div>
+      <span className='absolute right-5 bottom-2 text-gray-100 font-medium'>
+        👈🏻 책을 눌러보세요!
+      </span>
     </BookStore>
   );
 }

@@ -22,7 +22,7 @@ export default function Home() {
     <ColorProvider>
       <main className='flex min-h-screen flex-col items-center justify-between p-12 bg-yellow-200'>
         <h1 className='w-full text-center font-extrabold text-5xl'>
-          KYUNIVERSE
+          KYU-NIVERSE
         </h1>
         <div className='w-full flex text-left'></div>
         <div className='w-full text-right'>

@@ -12,7 +12,7 @@ export default function BookStore({ children }: BookStoreProps) {
 
   return (
     <div
-      className={`target w-1/2 transition-all ${generateColor(
+      className={`relative target w-1/2 transition-all ${generateColor(
         'bg-gradient-to-r  from-indigo-400 to-red-300'
       )}`}
     >
