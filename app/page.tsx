@@ -20,7 +20,7 @@ import InfraContainer from './components/box-contents-servercomponents/InfraCont
 export default function Home() {
   return (
     <ColorProvider>
-      <main className='flex min-h-screen flex-col items-center justify-between p-24 bg-yellow-200'>
+      <main className='flex min-h-screen flex-col items-center justify-between p-12 bg-yellow-200'>
         <h1 className='w-full text-center font-extrabold text-5xl'>
           KYUNIVERSE
         </h1>
