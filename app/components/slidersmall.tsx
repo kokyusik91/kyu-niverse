@@ -2,18 +2,14 @@
 
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
-
-type CardData = {
-  title: string;
-  content: string;
-};
+import Link from 'next/link';
 
 function Card({
   card,
   distanceFromActiveIndex,
 }: {
   // card: CardData;
-  card: string;
+  card: CardBook;
   distanceFromActiveIndex: number;
 }) {
   return (
@@ -41,15 +37,21 @@ function Card({
       }
       className='slider-item'
     >
-      {/* <h1>{card.title} 🧐</h1>
-      <p>{card.content}</p> */}
-      <Image fill src={card} alt={card} />
+      <Link href={card.link} target='_blank'>
+        <Image fill src={card.imageUrl} alt={card.id} />
+      </Link>
     </div>
   );
 }
 
+type CardBook = {
+  id: string;
+  link: string;
+  imageUrl: string;
+};
+
 type SmallCardSliderProps = {
-  data: string[];
+  data: CardBook[];
 };
 
 export function SmallCardSlider({ data }: SmallCardSliderProps) {
@@ -73,7 +75,7 @@ export function SmallCardSlider({ data }: SmallCardSliderProps) {
     <div className='slider'>
       {data?.map((item, index) => (
         <Card
-          key={index}
+          key={item.id}
           card={item}
           distanceFromActiveIndex={distanceFromActiveIndex(index)}
         />

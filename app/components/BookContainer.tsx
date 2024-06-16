@@ -9,13 +9,13 @@ export default async function BookContainer() {
   // PageObjectResponse | PartialPageObjectResponse | PartialDatabaseObjectResponse | DatabaseObjectResponse []
   const bookDataList = data.results;
 
-  const bookList = bookDataList.map((item) => generateDTO(item));
+  const cardList = bookDataList
+    .map((item) => generateDTO(item))
+    .map((book) => ({
+      id: book.id,
+      link: book.link,
+      imageUrl: book.properties.image.files[0].file.url,
+    }));
 
-  const imageList = bookList.map((book) => book.properties.image);
-  const fileList = imageList
-    .map((item) => item.files)
-    .flat()
-    .map((file) => file.file.url);
-
-  return <SmallCardSlider data={fileList} />;
+  return <SmallCardSlider data={cardList} />;
 }
