@@ -1,4 +1,5 @@
 import { Client } from '@notionhq/client';
+import { DatabaseObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 export const notionClient = new Client({
   auth: process.env.NOTION_SECRET_KEY,
@@ -12,7 +13,7 @@ export const 데이터베이스메타정보가져오기 = async () => {
   return response;
 };
 
-export const 데이터베이스쿼리조회 = async (dbid: string) => {
+export const getQueryFromNotionDBbyId = async (dbid: string) => {
   const id = dbid;
   const response = await notionClient.databases.query({
     database_id: id,
@@ -26,3 +27,22 @@ export const retriveNotion = async () => {
 
   return response;
 };
+
+export const generateDTO = <T>(object: DatabaseObjectResponse) => {
+  const keys = Object.keys(object);
+
+  const { id, icon, properties, url: link } = object;
+
+  return { id, icon, properties, link };
+};
+
+// type NotionDataBaseDTO<T> = {
+//   id: string;
+//   icon: DatabaseObjectResponse['icon'];
+//   properties: Record<keyof T, T[keyof T] extends DatabasePropertyConfigResponse >;
+//   link: string;
+// };
+
+// type BookResponseDto = {
+//   title: DatabasePropertyConfigResponse;
+// };

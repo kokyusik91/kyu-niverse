@@ -1,12 +1,26 @@
 import {
-  데이터베이스메타정보가져오기,
-  데이터베이스쿼리조회,
-} from '../providers/notion';
+  DatabaseObjectResponse,
+  FilesPropertyItemObjectResponse,
+} from '@notionhq/client/build/src/api-endpoints';
+import { generateDTO, getQueryFromNotionDBbyId } from '../providers/notion';
 
 export default async function NotionPage() {
-  // const data = await 데이터베이스쿼리조회();
-  // const results = data.results;
+  const dbId = process.env.NOTION_BOOK_DATABASE_ID;
 
+  const data = await getQueryFromNotionDBbyId(dbId ?? 'ss');
+
+  // PageObjectResponse | PartialPageObjectResponse | PartialDatabaseObjectResponse | DatabaseObjectResponse []
+  const bookDataList = data.results;
+
+  const bookList = bookDataList.map((item) =>
+    generateDTO(item as DatabaseObjectResponse)
+  );
+
+  const imageList = bookList.map((book) => book.properties.image);
+  // const fileList = imageList
+  //   .map((item) => item.files)
+  //   .flat()
+  //   .map((file) => file.file.url);
   return (
     <main>
       <h1 className='text-black'>왜 안나오노?</h1>
