@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
   openGraph: {
     title: '큐니버스 🌏',
-    description: '큐식코의 유니버스에는 무엇이 있을까?',
+    description: '큐시코 유니버스에는 무엇이 있을까?',
     locale: 'ko_KR',
     type: 'website',
     images: {
