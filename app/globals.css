@@ -39,7 +39,7 @@ body {
 .textbox {
   margin-right: 10px;
   padding: 0;
-  animation: movement 8s infinite ease-in-out;
+  animation: movement 15s infinite ease-in-out;
 }
 
 @keyframes movement {

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 const TARGET = 165;
 const PERCENT = Math.floor((165 / 365) * 100);
@@ -29,20 +29,20 @@ export default function Health() {
   };
 
   return (
-    <div className='relative flex gap-8'>
+    <div className="relative flex gap-8">
       <div key={animationKey}>
-        <h1 className='text-3xl font-bold mb-3 animate-[2s_roundup_ease-in-out]'>
+        <h1 className="mb-3 animate-[2s_roundup_ease-in-out] text-3xl font-bold">
           헬스 💪🏻
         </h1>
-        <div className='w-[300px] h-4 bg-white rounded-md'>
+        <div className="h-4 w-[300px] rounded-md bg-white">
           <div
             style={{ width: `${PERCENT}%` }}
-            className={`h-4 bg-white rounded-md`}
+            className={`h-4 rounded-md bg-white`}
           >
             <div
-              className={`relative animate-[3s_graph_ease-in-out] h-4 bg-blue-500 rounded-md`}
+              className={`relative h-4 animate-[3s_graph_ease-in-out] rounded-md bg-blue-500`}
             >
-              <time className='absolute top-full font-bold text-xl text-blue-500 right-0 animate-[3s_wigglewiggle_ease-in-out]'>
+              <time className="absolute right-0 top-full animate-[3s_wigglewiggle_ease-in-out] text-xl font-bold text-blue-500">
                 {time}
               </time>
             </div>
@@ -50,19 +50,19 @@ export default function Health() {
         </div>
       </div>
       <div>
-        <h1 className='text-3xl font-bold'>클라이밍 🧗🏻‍♀️</h1>{' '}
-        <div key={animationKey} className='flex justify-end'>
-          <time className='mr-1 text-4xl font-extrabold bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block text-transparent bg-clip-text animate-[2s_roundup_ease-in-out]'>
+        <h1 className="text-3xl font-bold">클라이밍 🧗🏻‍♀️</h1>{" "}
+        <div key={animationKey} className="flex justify-end">
+          <time className="mr-1 inline-block animate-[2s_roundup_ease-in-out] bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text text-4xl font-extrabold text-transparent">
             3
           </time>
-          <h1 className='text-4xl font-bold'>회</h1>
+          <h1 className="text-4xl font-bold">회</h1>
         </div>
       </div>
 
       <button
         onClick={handleRetry}
-        className={`absolute text-4xl top-[-12px] right-1/2 transition-all ${
-          animationEnded ? 'opacity-1' : 'opacity-0'
+        className={`absolute right-1/2 top-[-12px] text-4xl transition-all ${
+          animationEnded ? "opacity-1" : "opacity-0"
         }`}
       >
         ↩️
