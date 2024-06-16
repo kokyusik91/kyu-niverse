@@ -27,7 +27,7 @@ export default function ColorProvider({ children }: ColorProviderProps) {
 
   const toggleColor = useCallback(() => {
     return setIsColor((prev) => !prev);
-  }, [isColor, setIsColor]);
+  }, [setIsColor]);
 
   const generateColor = useCallback(
     (color: string) => {
@@ -35,7 +35,7 @@ export default function ColorProvider({ children }: ColorProviderProps) {
 
       return color;
     },
-    [isColor, setIsColor]
+    [isColor]
   );
 
   return (

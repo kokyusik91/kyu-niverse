@@ -94,7 +94,7 @@ export function SmallCardSlider({ data }: SmallCardSliderProps) {
     return currentIndex - activeIndex;
   };
 
-  const amount = useMemo(() => data?.length, []);
+  const amount = useMemo(() => data?.length, [data]);
 
   const handlePrevButton = () => {
     setActiveIndex((prev) => prev - 1);
