@@ -28,9 +28,7 @@ export const retriveNotion = async () => {
   return response;
 };
 
-export const generateDTO = <T>(object: DatabaseObjectResponse) => {
-  const keys = Object.keys(object);
-
+export const generateDTO = <T>(object: any) => {
   const { id, icon, properties, url: link } = object;
 
   return { id, icon, properties, link };
