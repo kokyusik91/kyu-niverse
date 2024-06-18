@@ -1,15 +1,15 @@
 import Image from 'next/image';
-import ImageSlider from '../ImageSlider';
+import ImageSlider from '../slider/ImageSlider';
 import Fashion from '../box-contents/Fashion';
-import HeadSlider from '../headSlider';
-import PantsSlider from '../pantsSlider';
-import { CLOTHES, MANHEAD, PANTS } from '@/app/constants/fashion';
+import HeadSlider from '../slider/headSlider';
+import PantsSlider from '../slider/pantsSlider';
+import { CLOTHES, PEOPLE_HEAD, PANTS } from '@/app/constants/fashion';
 
 export default function FashionContainer() {
   return (
     <Fashion>
       <div className='flex w-full h-full flex-col items-center p-3'>
-        <HeadSlider data={MANHEAD} />
+        <HeadSlider data={PEOPLE_HEAD} />
         {/* <Image src={'/hks.png'} alt='멀왕' width={60} height={60} /> */}
         <ImageSlider data={CLOTHES} width={200} height={200} />
         <PantsSlider data={PANTS} width={150} height={150} />

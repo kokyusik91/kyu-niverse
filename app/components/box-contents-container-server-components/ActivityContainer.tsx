@@ -1,4 +1,4 @@
-import Health from '../health';
+import Health from '../Health';
 import Activity from '../box-contents/Activity';
 
 export default function ActivityContainer() {

@@ -13,15 +13,15 @@ type SkillTem = {
 
 export default function Skillset() {
   const [target, setTarget] = useState<SkillTem | null>(null);
-  const [isToggleOn, setToggleOn] = useState(false);
+  const [isToggled, setToggled] = useState(false);
 
-  const handleOver = (item: SkillTem) => {
-    setToggleOn(true);
+  const handleMouseOver = (item: SkillTem) => {
+    setToggled(true);
     setTarget(item);
   };
 
-  const handleFirstBlur2 = () => {
-    setToggleOn(false);
+  const handleMouseOut = () => {
+    setToggled(false);
     setTarget(null);
   };
 
@@ -32,28 +32,26 @@ export default function Skillset() {
         className={`h-10 mb-7 ${
           target?.color
         } text-4xl font-extrabold text-center transition-all ease-in-out duration-300 ${
-          isToggleOn
+          isToggled
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-full'
         }`}
       >
-        {target?.label || ''}
+        {target?.label}
       </p>
       <div className='flex overflow-hidden'>
         <ul className='flex animate-[120s_rollingleft1_linear_infinite]'>
           {[...SKILL, ...SKILL, ...SKILL].map((item, index) => (
             <li
               key={index}
-              onMouseOver={() => handleOver(item)}
-              onMouseOut={handleFirstBlur2}
-              className='w-[50px] h-[50px] shrink-0 mx-2'
+              onMouseOver={() => handleMouseOver(item)}
+              onMouseOut={handleMouseOut}
             >
               <Image
                 width={50}
                 height={50}
                 src={item.url}
                 alt={item.label}
-                className='w-[50px] h-[50px]'
               />
             </li>
           ))}
@@ -62,16 +60,14 @@ export default function Skillset() {
           {[...SKILL, ...SKILL, ...SKILL].map((item, index) => (
             <li
               key={index}
-              onMouseOver={() => handleOver(item)}
-              onMouseOut={handleFirstBlur2}
-              className='w-[50px] h-[50px] shrink-0 mx-2'
+              onMouseOver={() => handleMouseOver(item)}
+              onMouseOut={handleMouseOut}
             >
               <Image
                 width={50}
                 height={50}
                 src={item.url}
                 alt={item.label}
-                className='w-[50px] h-[50px]'
               />
             </li>
           ))}
