@@ -1,5 +1,5 @@
-import Health from '../Health';
-import Activity from '../box-contents/Activity';
+import Health from "@/app/components/Health";
+import Activity from "../box-contents/Activity";
 
 export default function ActivityContainer() {
   return (
