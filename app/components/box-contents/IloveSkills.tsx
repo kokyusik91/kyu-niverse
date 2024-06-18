@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { ReactNode } from 'react';
-import { useColor } from '@/app/providers/ColorProvider';
+import React, { ReactNode } from "react";
+import { useColor } from "@/app/providers/ColorProvider";
 
 type IloveProps = {
   children: ReactNode;
@@ -12,8 +12,8 @@ export default function IloveSkills({ children }: IloveProps) {
 
   return (
     <div
-      className={`target relative grow transition-all ${generateColor(
-        'bg-slate-800'
+      className={`target relative grow p-3 transition-all ${generateColor(
+        "bg-slate-800",
       )} `}
     >
       {children}
