@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 const TARGET = 169;
 const PERCENT = Math.floor((165 / 365) * 100);
 
-
 export default function Health() {
   const [time, setTime] = useState(1);
   const [animationEnded, setAnimationEnded] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
+
+  // console.log("ww")
 
   useEffect(() => {
     if (time > TARGET) {
