@@ -17,13 +17,12 @@ import ActivityContainer from "./components/box-contents-container-server-compon
 import InfraContainer from "./components/box-contents-container-server-components/InfraContainer";
 import ToggleColorButton from "./components/ToggleColorButton";
 
-
 export default function Home() {
   return (
     <ColorProvider>
-      <main className="flex min-h-screen flex-col items-center justify-between bg-yellow-200 p-12 bg-[url('/universe-full.jpg')] bg-center bg-origin-content bg-auto">
+      <main className="flex min-h-screen flex-col items-center justify-between bg-yellow-200 bg-[url('/universe-full.jpg')] bg-auto bg-center bg-origin-content p-12">
         <header className="flex items-center">
-          <h1 className="w-full text-center mr-3 text-6xl font-extrabold bg-gradient-to-r from-blue-600  via-green-500  to-indigo-400  inline-block text-transparent bg-clip-text poetsen">
+          <h1 className="poetsen mr-3 inline-block w-full bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text text-center text-6xl font-extrabold text-transparent">
             KYU-NIVERSE
           </h1>
           <span className="text-5xl font-extrabold">🌍</span>
