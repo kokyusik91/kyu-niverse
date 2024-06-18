@@ -17,7 +17,7 @@ export const CLOTHES = [
   '/8ball.png',
 ];
 
-export const MANHEAD = [
+export const PEOPLE_HEAD = [
   '👦🏼',
   '👶🏻',
   '🧒🏻',

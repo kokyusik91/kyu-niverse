@@ -1,29 +1,33 @@
 import ColorProvider from "./providers/ColorProvider";
+
+import IloveSkillContainer from "./components/box-contents-container-server-components/IloveSkillContainer";
+import ResumeContainer from "./components/box-contents-container-server-components/ResumeContainer";
+import GithubBlogContainer from "./components/box-contents-container-server-components/GithubBlogContainer";
+import FashionContainer from "./components/box-contents-container-server-components/FashionContainer";
+import InterestContainer from "./components/box-contents-container-server-components/InterestContainer";
+import MedicContainer from "./components/box-contents-container-server-components/MedicContainer";
+import BookStoreContainer from "./components/box-contents-container-server-components/BookStoreContainer";
+import BrunchContainer from "./components/box-contents-container-server-components/BrunchContainer";
+import KofetchContainer from "./components/box-contents-container-server-components/KofetchContainer";
+import FEworldContainer from "./components/box-contents-container-server-components/FEworldContainer";
+import BEworldContainer from "./components/box-contents-container-server-components/BEworldContainer";
+import EmptyContainer from "./components/box-contents-container-server-components/EmptyContainer";
+import GithubContainer from "./components/box-contents-container-server-components/GithubContainer";
+import ActivityContainer from "./components/box-contents-container-server-components/ActivityContainer";
+import InfraContainer from "./components/box-contents-container-server-components/InfraContainer";
 import ToggleColorButton from "./components/ToggleColorButton";
 
-import IloveSkillContainer from "./components/box-contents-servercomponents/IloveSkillContainer";
-import ResumeContainer from "./components/box-contents-servercomponents/ResumeContainer";
-import GithubBlogContainer from "./components/box-contents-servercomponents/GithubBlogContainer";
-import FashionContainer from "./components/box-contents-servercomponents/FashionContainer";
-import InterestContainer from "./components/box-contents-servercomponents/InterestContainer";
-import MedicContainer from "./components/box-contents-servercomponents/MedicContainer";
-import BookStoreContainer from "./components/box-contents-servercomponents/BookStoreContainer";
-import BrunchContainer from "./components/box-contents-servercomponents/BrunchContainer";
-import KofetchContainer from "./components/box-contents-servercomponents/KofetchContainer";
-import FEworldContainer from "./components/box-contents-servercomponents/FEworldContainer";
-import BEworldContainer from "./components/box-contents-servercomponents/BEworldContainer";
-import EmptyContainer from "./components/box-contents-servercomponents/EmptyContainer";
-import GithubContainer from "./components/box-contents-servercomponents/GithubContainer";
-import ActivityContainer from "./components/box-contents-servercomponents/ActivityContainer";
-import InfraContainer from "./components/box-contents-servercomponents/InfraContainer";
 
 export default function Home() {
   return (
     <ColorProvider>
-      <main className="flex min-h-screen flex-col items-center justify-between bg-yellow-200 p-12">
-        <h1 className="w-full text-center text-5xl font-extrabold">
-          KYU-NIVERSE
-        </h1>
+      <main className="flex min-h-screen flex-col items-center justify-between bg-yellow-200 p-12 bg-[url('/universe-full.jpg')] bg-center bg-origin-content bg-auto">
+        <header className="flex items-center">
+          <h1 className="w-full text-center mr-3 text-6xl font-extrabold bg-gradient-to-r from-blue-600  via-green-500  to-indigo-400  inline-block text-transparent bg-clip-text poetsen">
+            KYU-NIVERSE
+          </h1>
+          <span className="text-5xl font-extrabold">🌍</span>
+        </header>
         <div className="flex w-full text-left"></div>
         <div className="w-full text-right">
           <ToggleColorButton />

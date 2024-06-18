@@ -8,11 +8,12 @@ export default function ToggleColorButton() {
   return (
     <button
       onClick={toggleColor}
-      className={`mb-3 p-5 text-xl rounded-lg font-bold transition-all ease-in-out ${
-        isColor ? 'bg-red-500 text-zinc-200' : 'bg-white text-zinc-800'
+      className={`mb-3 p-2 text-4xl rounded-full font-bold transition-all ease-in-out ${
+        isColor ? 'bg-white text-zinc-800' : 'bg-gradient-to-r from-blue-600  via-green-500  to-indigo-400  inline-block' 
       }`}
     >
-      {isColor ? '컬러로' : '모노로'}
+      {isColor ? '⚪️' : '🎨'}
     </button>
   );
 }
+

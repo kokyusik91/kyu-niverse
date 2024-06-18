@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-const TARGET = 165;
+const TARGET = 169;
 const PERCENT = Math.floor((165 / 365) * 100);
+
+
 export default function Health() {
   const [time, setTime] = useState(1);
   const [animationEnded, setAnimationEnded] = useState(false);

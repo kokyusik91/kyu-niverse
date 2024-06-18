@@ -1,7 +1,7 @@
 'use client';
 
 import { useColor } from '@/app/providers/ColorProvider';
-import Health from '../health';
+import Health from '../Health';
 import { ReactNode } from 'react';
 
 type ActivityProps = {

@@ -21,13 +21,8 @@ export const getQueryFromNotionDBbyId = async (dbid: string) => {
   return response;
 };
 
-export const retriveNotion = async () => {
-  const response = await fetch('https://api.notion.com/v1/databases/');
-
-  return response;
-};
-
-export const generateDTO = <T>(object: any) => {
+// TODO: 노션 API 응답데이터 타입 분석후 any 교체
+export const getClientDtoFromNotionAPI = <T>(object: any) => {
   const { id, icon, properties, url: link } = object;
 
   return { id, icon, properties, link };

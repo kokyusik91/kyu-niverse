@@ -8,14 +8,12 @@ import {
   useState,
 } from 'react';
 
-// Context 타입 정의
 interface ColorContextType {
   isColor: boolean;
   toggleColor: () => void;
   generateColor: (color: string) => string;
 }
 
-// Context 생성
 const ColorContext = createContext<ColorContextType | undefined>(undefined);
 
 type ColorProviderProps = {
@@ -45,7 +43,6 @@ export default function ColorProvider({ children }: ColorProviderProps) {
   );
 }
 
-// Custom Hook
 export function useColor() {
   const context = useContext(ColorContext);
   if (context === undefined) {
