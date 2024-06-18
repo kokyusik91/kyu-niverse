@@ -1,11 +1,12 @@
-import Image from 'next/image';
-import Resume from '../box-contents/Resume';
+import Resume from "../box-contents/Resume";
 
 export default function ResumeContainer() {
   return (
     <Resume>
-      <span className='mr-2 text-5xl font-bold z-10 relative'></span>
-      <span className='text-3xl animate-[3s_roundup_ease-in-out_infinite_alternate-reverse]'>
+      <span className="relative z-10 mr-2 font-bold lg:text-2xl xl:text-3xl 2xl:text-4xl">
+        RESUME
+      </span>
+      <span className="animate-[3s_roundup_ease-in-out_infinite_alternate-reverse] lg:text-2xl xl:text-3xl 2xl:text-4xl">
         💾
       </span>
     </Resume>
