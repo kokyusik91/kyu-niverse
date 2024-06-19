@@ -16,7 +16,7 @@ export default function Resume({ children }: ResumeProps) {
       target="_blank"
       rel="noopener noreferrer"
       download
-      className={`target relative h-1/4 bg-gradient-to-t ${generateColor("from-blue-400 to-green-200")} p-3 transition-all`}
+      className={`target relative h-1/4 bg-gradient-to-r ${generateColor("from-blue-400 via-green-200 to-violet-200")} p-3 transition-all bg-400% animate-gradientbg`}
     >
       {children}
     </a>

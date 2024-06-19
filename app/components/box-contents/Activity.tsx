@@ -12,7 +12,7 @@ export default function Activity({ children }: ActivityProps) {
 
   return (
     <div
-      className={`target w-1/2 transition-all ${generateColor(
+      className={`target w-1/2 transition-all p-6 ${generateColor(
         "bg-gradient-to-r from-green-200 to-indigo-300",
       )}`}
     >

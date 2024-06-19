@@ -14,7 +14,7 @@ export default function InterestContainer() {
               {KKS.map((item, index) => (
                 <li
                   key={index}
-                  className='textboxchild text-[32px] font-extrabold'
+                  className='flex items-center justify-end text-[32px] font-extrabold bg-gradient-to-t from-red-300  to-indigo-700 text-transparent bg-clip-text'
                 >
                   {item}
                 </li>

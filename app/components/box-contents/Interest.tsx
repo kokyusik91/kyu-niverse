@@ -12,7 +12,7 @@ export default function Interest({ children }: InterestProps) {
 
   return (
     <div
-      className={`target h-2/6 transition-all ${generateColor("bg-blue-400")} p-10`}
+      className={`target h-2/6 transition-all ${generateColor("bg-blue-300")} p-10`}
     >
       {children}
     </div>

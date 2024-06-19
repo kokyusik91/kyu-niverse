@@ -82,18 +82,6 @@ body {
   }
 }
 
-.textboxchild {
-  display: flex;
-  align-items: center;
-  justify-content: end;
-  /* height: 48px; */
-  list-style: none;
-  background-clip: text;
-  background: -webkit-linear-gradient(#1668ba, #7ad28d);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 
 
 .slider-container {
