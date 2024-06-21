@@ -22,17 +22,18 @@ export default function Home() {
     <ColorProvider>
       <main className="flex min-h-screen flex-col items-center justify-between bg-yellow-200 bg-[url('/universe-full.jpg')] bg-auto bg-center bg-origin-content p-12">
         <header className="flex items-center">
-          <h1 className="poetsen mr-3 inline-block w-full bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text text-center text-6xl font-extrabold text-transparent bg-300% animate-gradient">
+          <h1 className="poetsen bg-300% animate-gradient mr-3 inline-block w-full bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text text-center text-6xl font-extrabold text-transparent">
             KYU-NIVERSE
           </h1>
           <span className="text-5xl font-extrabold">🌍</span>
         </header>
-        <div className="flex w-full text-left"></div>
         <div className="w-full text-right">
+          {/* 클릭하면 모든 유니버스의 박스들이 블러처리 되면서 그 유니버스의 설명이 나옴. */}
+          <button>📜</button>
           <ToggleColorButton />
         </div>
         <div className="w-full rounded-md bg-white p-5">
-          <div className="flex h-[1000px] 3xl:h-[1400px] w-full gap-5 bg-white">
+          <div className="3xl:h-[1400px] flex h-[1000px] w-full gap-5 bg-white">
             <div className="flex h-full w-2/6 flex-col gap-5 bg-white">
               <div className="flex w-full grow gap-5">
                 <div className="flex h-full w-1/2 flex-col gap-5 bg-white">

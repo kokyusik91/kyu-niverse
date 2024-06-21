@@ -32,9 +32,9 @@ export default function Health() {
   };
 
   return (
-    <div className="w-full relative lg:flex-col xl:flex-row xl:justify-between 2xl:gap-x-20 2xl:justify-center">
+    <div className="relative flex w-full">
       <div key={animationKey}>
-        <h1 className="mb-3 animate-[2s_roundup_ease-in-out] 2xl:text-3xl font-bold">
+        <h1 className="mb-3 animate-[2s_roundup_ease-in-out] font-bold 2xl:text-3xl">
           헬스 💪🏻
         </h1>
         <div className="h-4 w-[300px] rounded-md bg-white">
@@ -45,7 +45,7 @@ export default function Health() {
             <div
               className={`relative h-4 animate-[3s_graph_ease-in-out] rounded-md bg-blue-500`}
             >
-              <time className="absolute right-0 top-full animate-[3s_wigglewiggle_ease-in-out] 2xl:text-3xl font-bold text-blue-500">
+              <time className="absolute right-0 top-full animate-[3s_wigglewiggle_ease-in-out] font-bold text-blue-500 2xl:text-3xl">
                 {time}
               </time>
             </div>
@@ -53,12 +53,12 @@ export default function Health() {
         </div>
       </div>
       <div>
-        <h1 className="2xl:text-3xl font-bold text-nowrap">클라이밍 🧗🏻‍♀️</h1>
+        <h1 className="text-nowrap font-bold 2xl:text-3xl">클라이밍 🧗🏻‍♀️</h1>
         <div key={animationKey} className="flex justify-end">
-          <time className="mr-1 inline-block animate-[2s_roundup_ease-in-out] bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text 2xl:text-3xl font-extrabold text-transparent">
+          <time className="mr-1 inline-block animate-[2s_roundup_ease-in-out] bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text font-extrabold text-transparent 2xl:text-3xl">
             3
           </time>
-          <h1 className="2xl:text-3xl font-bold">회</h1>
+          <h1 className="font-bold 2xl:text-3xl">회</h1>
         </div>
       </div>
 
