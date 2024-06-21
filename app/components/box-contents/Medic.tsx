@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { MEDIC_NOTION_URL } from '@/app/constants/external-url';
-import Link from 'next/link';
-import { ReactNode } from 'react';
+import { MEDIC_NOTION_URL } from "@/app/constants/external-url";
+import Link from "next/link";
+import { ReactNode } from "react";
 
 type MedicProps = {
   children: ReactNode;
@@ -11,9 +11,9 @@ type MedicProps = {
 export default function Medic({ children }: MedicProps) {
   return (
     <Link
-      href={MEDIC_NOTION_URL}
-      target='_blank'
-      className={`target grow transition-all bg-[url('/code.jpg')] bg-right-top	`}
+      href={""}
+      target="_blank"
+      className={`target grow bg-[url('/code.jpg')] bg-right-top transition-all`}
     >
       {children}
     </Link>
