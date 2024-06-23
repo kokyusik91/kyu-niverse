@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <ColorProvider>
       <DescriptionProvider>
-        <main className="flex min-h-screen flex-col items-center justify-between bg-black bg-auto bg-origin-content lg:bg-[url('/universe-2.jpg')] lg:p-5 2xl:p-12">
+        <main className="flex min-h-screen flex-col items-center justify-between bg-[url('/universe-full.jpg')] bg-auto bg-origin-content lg:bg-[url('/universe-2.jpg')] lg:p-5 2xl:p-12">
           <header className="flex items-center p-6 lg:p-0">
             <h1 className="poetsen mr-3 inline-block w-full animate-gradient bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-300% bg-clip-text text-center text-4xl font-extrabold text-transparent lg:text-6xl">
               KYU-NIVERSE
