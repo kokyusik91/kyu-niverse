@@ -27,7 +27,7 @@ export default function FEworld({ children }: FEWorldProps) {
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>
         <h1 className={`mb-3 text-3xl font-extrabold text-zinc-900`}>
-          Kyu's FE World 🗺️
+          KYU&apos;S FE World 🗺️
         </h1>
         <p>
           저의 프론트엔드 개발 시작부터 현재까지 그리고 앞으로도 공부를 하며

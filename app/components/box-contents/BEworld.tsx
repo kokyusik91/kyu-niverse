@@ -27,7 +27,7 @@ export default function BEworld({ children }: BEworldProps) {
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>
         <h1 className={`mb-3 text-3xl font-extrabold text-zinc-900`}>
-          Kyu's BE World 🗺️
+          KYU&apos;S BE World 🗺️
         </h1>
         <p>
           는 프론트엔드 개발자이지만, 다양한 분야에 관심이 있습니다. 이게
