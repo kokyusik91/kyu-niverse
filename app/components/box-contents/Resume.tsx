@@ -16,11 +16,11 @@ export default function Resume({ children }: ResumeProps) {
 
   return (
     <a
-      href="/resume-kokyusik.pdf"
+      href="/resume-kyusikko.pdf"
       target="_blank"
       rel="noopener noreferrer"
       download
-      className={`target relative inline-block h-1/4 min-h-44 p-3 transition-all ${generateColor("bg-zinc-800")}`}
+      className={`target relative inline-block h-1/4 min-h-44 animate-gradientbg bg-gradient-to-r bg-400% p-3 transition-all ${generateColor("from-blue-400 via-green-200 to-violet-300")}`}
       // className={`target relative h-1/4 bg-gradient-to-r ${generateColor("from-blue-400 via-green-200 to-violet-200")} animate-gradientbg bg-400% p-3 transition-all`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>

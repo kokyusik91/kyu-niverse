@@ -20,7 +20,7 @@ export default function Infra({ children }: InfraProps) {
     <Link
       href={INFRA_NOTION_URL}
       target="_blank"
-      className={`target grow p-10 transition-all ${generateColor("bg-zinc-800")}`}
+      className={`target grow p-10 transition-all ${generateColor("bg-emerald-200")}`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>

@@ -16,10 +16,10 @@ export default function BookStore({ children }: BookStoreProps) {
 
   return (
     <div
-      // className={`target relative w-1/2 transition-all ${generateColor(
-      //   "bg-gradient-to-r from-blue-400 to-green-200",
-      // )}`}
-      className={`target relative transition-all md:w-full lg:w-1/2 ${generateColor("bg-slate-800")}`}
+      className={`target relative w-full transition-all md:w-full lg:w-1/2 ${generateColor(
+        "bg-gradient-to-r from-violet-400 to-green-200",
+      )}`}
+      // className={`target relative transition-all md:w-full lg:w-1/2 ${generateColor("bg-slate-800")}`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>

@@ -19,7 +19,7 @@ export default function GithubBlog({ children }: GithubBlogProps) {
     <Link
       href={GITHUB_BLOG_URL}
       target="_blank"
-      className={`target h-1/4 transition-all ${generateColor("bg-zinc-800")} p-3`}
+      className={`target h-1/4 transition-all ${generateColor("bg-blue-400")} p-3`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>

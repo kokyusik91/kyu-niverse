@@ -15,9 +15,7 @@ export default function Fashion({ children }: FashionProps) {
   const { hasDescription } = useDesciption();
   return (
     <div
-      className={`target flex transition-all lg:w-3/5 ${generateColor(
-        "bg-red-300",
-      )}`}
+      className={`target flex transition-all lg:w-3/5 ${generateColor("bg-violet-300")}`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>
