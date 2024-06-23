@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import React, { useMemo, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import React, { useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function Card({
   card,
@@ -22,22 +23,22 @@ function Card({
               }px) scale(${
                 1 - 0.2 * Math.abs(distanceFromActiveIndex)
               }) perspective(16px) rotateY(${
-                distanceFromActiveIndex > 0 ? '-1deg' : '1deg'
+                distanceFromActiveIndex > 0 ? "-1deg" : "1deg"
               })`,
-              filter: 'blur(5px)',
+              filter: "blur(5px)",
               zIndex: `${500 - Math.abs(distanceFromActiveIndex)}`,
               opacity: `${Math.abs(distanceFromActiveIndex) > 2 ? 0 : 0.6}`,
             }
           : {
-              transform: 'none',
+              transform: "none",
               zIndex: 500,
-              filter: 'none',
+              filter: "none",
               opacity: 1,
             }
       }
-      className='slider-item'
+      className="slider-item"
     >
-      <Link href={card.link} target='_blank'>
+      <Link href={card.link} target="_blank">
         <Image fill src={card.imageUrl} alt={card.id} />
       </Link>
     </div>
@@ -72,7 +73,7 @@ export function SmallCardSlider({ data }: SmallCardSliderProps) {
   };
 
   return (
-    <div className='slider'>
+    <div className="slider">
       {data?.map((item, index) => (
         <Card
           key={item.id}
@@ -80,30 +81,16 @@ export function SmallCardSlider({ data }: SmallCardSliderProps) {
           distanceFromActiveIndex={distanceFromActiveIndex(index)}
         />
       ))}
-      <button
-        onClick={handlePrevButton}
-        className={`${
-          activeIndex === 0
-            ? 'text-blue-100 bg-slate-500 opacity-50'
-            : 'text-blue-100 bg-blue-500'
-        } transition-all`}
-        id='prev'
-        disabled={activeIndex === 0}
-      >
-        {activeIndex === 0 ? '🙅🏼‍♂️' : '⬅️'}
-      </button>
-      <button
-        onClick={handleNextButton}
-        className={`${
-          amount === activeIndex + 1
-            ? 'text-blue-100 bg-slate-500 opacity-50'
-            : 'text-blue-100 bg-blue-500'
-        }`}
-        id='next'
-        disabled={amount === activeIndex + 1}
-      >
-        {amount === activeIndex + 1 ? '🙅🏼‍♀️' : '➡️'}
-      </button>
+      {activeIndex !== 0 && (
+        <button onClick={handlePrevButton} id="prev">
+          <ChevronLeft size={30} color="black" />
+        </button>
+      )}
+      {amount !== activeIndex + 1 && (
+        <button onClick={handleNextButton} id="next">
+          <ChevronRight size={30} color="black" />
+        </button>
+      )}
     </div>
   );
 }

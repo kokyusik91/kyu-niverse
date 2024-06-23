@@ -19,6 +19,7 @@ body {
   }
 }
 
+/* TODO: 클래스 이름으로 선언한 css들은 조만간 tailwind.css의 classname으로 옮겨야함. */
 .target {
   border-radius: 20px;
   box-shadow: 16px 14px 20px #0000001c;
@@ -29,7 +30,6 @@ body {
   align-items: center;
   cursor: pointer;
 }
-
 
 @keyframes floating {
   from {
@@ -82,8 +82,6 @@ body {
   }
 }
 
-
-
 .slider-container {
   margin: 0;
   display: flex;
@@ -116,31 +114,13 @@ body {
   overflow: hidden;
 }
 
-.head-item {
-  /* height: 100%; */
-  position: absolute;
-  text-align: justify;
-  transition: 0.5s;
-  font-size: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.clothes-item {
-  position: absolute;
-  text-align: justify;
-  transition: 0.5s;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
 #next,
 #prev {
   position: absolute;
   top: 40%;
   border: none;
   left: 50px;
-  padding: 5px 10px;
+  padding: 10px;
   border-radius: 100%;
   z-index: 9999999999999999;
 }
@@ -149,7 +129,6 @@ body {
   left: unset;
   right: 50px;
 }
-
 
 .poetsen {
   font-family: "PoetsenOne", cursive;

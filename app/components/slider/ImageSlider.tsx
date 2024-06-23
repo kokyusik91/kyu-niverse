@@ -1,17 +1,10 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import React, { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import React, { useMemo, useState } from "react";
 
-export default function ImageSlider({
-  data,
-  height,
-  width,
-}: {
-  data: string[];
-  height: number;
-  width: number;
-}) {
+export default function ImageSlider({ data }: { data: string[] }) {
   const [activeIndex, setActiveIndex] = useState(2);
 
   const distanceFromActiveIndex = (currentIndex: number) => {
@@ -29,49 +22,52 @@ export default function ImageSlider({
   const amount = useMemo(() => data?.length, [data?.length]);
 
   return (
-    <ul className={`relative w-full h-[170px] z-50`}>
+    <ul className={`h-3/10 relative top-10 z-20 flex w-full items-center`}>
       {data.map((man, index) => (
         <Image
+          key={index}
           src={man}
           alt={man}
-          width={400}
-          height={200}
-          key={index}
+          width={270}
+          height={300}
+          className="absolute left-1/2 -translate-x-1/2 transform text-justify transition duration-500"
           style={
             distanceFromActiveIndex(index) !== 0
               ? {
                   transform: `translateX(${
                     distanceFromActiveIndex(index) * 100
                   }%)`,
-                  filter: 'blur(1px)',
+                  filter: "blur(1px)",
                   zIndex: `${10 - Math.abs(distanceFromActiveIndex(index))}`,
                   opacity: 0,
-                  width: '350px',
                 }
               : {
                   zIndex: 10,
-                  filter: 'none',
+                  filter: "none",
                   opacity: 1,
-                  width: '350px',
                 }
           }
-          className='clothes-item'
         />
       ))}
-      <button
-        className='absolute top-28 left-2 z-10'
-        onClick={handleClickPrev}
-        disabled={activeIndex === 0}
-      >
-        {activeIndex === 0 ? '' : '⬅️'}
-      </button>
-      <button
-        className='absolute top-28 right-2 z-10'
-        onClick={handleClickNext}
-        disabled={amount === activeIndex + 1}
-      >
-        {amount === activeIndex + 1 ? '🙅🏼‍♀️' : '➡️'}
-      </button>
+      {/* 좌측 버튼 */}
+      {activeIndex !== 0 && (
+        <button
+          className="absolute left-2 top-28 z-10"
+          onClick={handleClickPrev}
+        >
+          <ChevronLeft size={20} color="black" />
+        </button>
+      )}
+      {/* 우측 버튼 */}
+      {amount !== activeIndex + 1 && (
+        <button
+          className="absolute right-2 top-28 z-10"
+          onClick={handleClickNext}
+          disabled={amount === activeIndex + 1}
+        >
+          <ChevronRight size={20} color="black" />
+        </button>
+      )}
     </ul>
   );
 }

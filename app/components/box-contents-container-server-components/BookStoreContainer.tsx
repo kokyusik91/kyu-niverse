@@ -1,21 +1,20 @@
-import { Suspense } from 'react';
-import BookContainer from '../BookContainer';
-import BookStore from '../box-contents/BookStore';
+import { Suspense } from "react";
+import BookContainer from "../BookContainer";
+import BookStore from "../box-contents/BookStore";
 
-
-const FakeBook = ()=>{
-  return <div className='w-[200px] h-[300px] '></div>
-}
+const FakeBook = () => {
+  return <div className="h-[300px] w-[200px]"></div>;
+};
 
 export default function BookStoreContainer() {
   return (
     <BookStore>
-      <div className='flex items-center justify-center h-full w-full m-0'>
-        <Suspense fallback={<FakeBook/>}>
+      <div className="m-0 flex h-full w-full items-center justify-center">
+        <Suspense fallback={<FakeBook />}>
           <BookContainer />
         </Suspense>
       </div>
-      <span className='absolute right-5 bottom-2 text-gray-100 font-medium'>
+      <span className="absolute bottom-2 right-5 hidden font-medium text-zinc-700 2xl:block">
         👈🏻 책을 눌러보세요!
       </span>
     </BookStore>

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ReactNode,
@@ -6,12 +6,13 @@ import {
   useCallback,
   useContext,
   useState,
-} from 'react';
+} from "react";
 
 interface ColorContextType {
   isColor: boolean;
   toggleColor: () => void;
   generateColor: (color: string) => string;
+  generateTextColor: (color: string) => string;
 }
 
 const ColorContext = createContext<ColorContextType | undefined>(undefined);
@@ -29,15 +30,26 @@ export default function ColorProvider({ children }: ColorProviderProps) {
 
   const generateColor = useCallback(
     (color: string) => {
-      if (!isColor) return 'bg-slate-200';
+      if (!isColor) return "bg-white";
 
       return color;
     },
-    [isColor]
+    [isColor],
+  );
+
+  const generateTextColor = useCallback(
+    (color: string) => {
+      if (!isColor) return " text-zinc-700";
+
+      return color;
+    },
+    [isColor],
   );
 
   return (
-    <ColorContext.Provider value={{ isColor, toggleColor, generateColor }}>
+    <ColorContext.Provider
+      value={{ isColor, toggleColor, generateColor, generateTextColor }}
+    >
       {children}
     </ColorContext.Provider>
   );
@@ -46,7 +58,7 @@ export default function ColorProvider({ children }: ColorProviderProps) {
 export function useColor() {
   const context = useContext(ColorContext);
   if (context === undefined) {
-    throw new Error('useColor must be used within a ColorProvider');
+    throw new Error("useColor must be used within a ColorProvider");
   }
   return context;
 }

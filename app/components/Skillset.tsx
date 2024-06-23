@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { SKILL } from "../constants/skillset";
+import { useColor } from "../providers/ColorProvider";
 
 type SkillDetails = {
   value: string;
@@ -12,6 +13,7 @@ type SkillDetails = {
 };
 
 export default function Skillset() {
+  const { generateTextColor } = useColor();
   const [target, setTarget] = useState<SkillDetails | null>(null);
   const [isToggled, setToggled] = useState(false);
 
@@ -27,7 +29,9 @@ export default function Skillset() {
 
   return (
     <div className="">
-      <h1 className="mb-3 text-center font-extrabold lg:text-xl xl:text-2xl 2xl:text-3xl">
+      <h1
+        className={`mb-3 text-center text-2xl font-extrabold lg:text-3xl ${generateTextColor("white")}`}
+      >
         I LOVE 😘
       </h1>
       <p
@@ -44,9 +48,10 @@ export default function Skillset() {
           {[...SKILL, ...SKILL].map((item, index) => (
             <li
               key={index}
+              onClick={() => handleMouseOver(item)}
               onMouseOver={() => handleMouseOver(item)}
               onMouseOut={handleMouseOut}
-              className="mr-8 h-[50px] w-[50px]"
+              className="mr-4 h-[50px] w-[50px]"
             >
               <Image
                 width={50}
@@ -62,9 +67,10 @@ export default function Skillset() {
           {[...SKILL, ...SKILL].map((item, index) => (
             <li
               key={index}
+              onClick={() => handleMouseOver(item)}
               onMouseOver={() => handleMouseOver(item)}
               onMouseOut={handleMouseOut}
-              className="mr-8 h-[50px] w-[50px]"
+              className="mr-4 h-[50px] w-[50px]"
             >
               <Image
                 width={50}
