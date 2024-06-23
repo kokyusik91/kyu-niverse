@@ -1,11 +1,11 @@
-import { Client } from '@notionhq/client';
+import { Client } from "@notionhq/client";
 
 export const notionClient = new Client({
   auth: process.env.NOTION_SECRET_KEY,
 });
 
 export const 데이터베이스메타정보가져오기 = async () => {
-  const id = '';
+  const id = "";
   const response = await notionClient.databases.retrieve({
     database_id: id,
   });
@@ -23,7 +23,7 @@ export const getQueryFromNotionDBbyId = async (dbid: string) => {
 
 // TODO: 노션 API 응답데이터 타입 분석후 any 교체
 export const getClientDtoFromNotionAPI = <T>(object: any) => {
-  const { id, icon, properties, url: link } = object;
+  const { id, icon, properties, public_url: link } = object;
 
   return { id, icon, properties, link };
 };

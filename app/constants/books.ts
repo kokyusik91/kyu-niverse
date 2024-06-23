@@ -1,0 +1,16 @@
+export const BOOK_LIST: Record<string, string> = {
+  kludge: "/books/kludge.jpg",
+  superrich: "/books/superrich.jpg",
+  system: "/books/system.jpg",
+  logical: "/books/logical.jpg",
+  personal: "/books/personal.jpg",
+  trend2023: "/books/trend2023.jpg",
+  wanna: "/books/wanna.jpg",
+  passinglane: "/books/passinglane.jpeg",
+  wellthinking: "/books/wellthinking.jpeg",
+  reverage: "/books/reverage.jpg",
+  trend2024: "/books/trend2024.jpeg",
+  mental: "/books/mental.jpeg",
+  economy: "/books/economy.jpeg",
+  reverser: "/books/reverser.jpg",
+};
