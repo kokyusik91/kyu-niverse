@@ -12,7 +12,7 @@ export default function InterestContainer() {
         <ColorText
           render={(color) => (
             <span className={`text-2xl font-extrabold 2xl:text-3xl ${color}`}>
-              고규식은
+              큐식코는
             </span>
           )}
         />

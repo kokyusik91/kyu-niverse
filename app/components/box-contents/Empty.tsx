@@ -23,7 +23,7 @@ export default function Empty({ children }: EmptyProps) {
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>
         <h1 className={`mb-3 text-3xl font-extrabold text-zinc-900`}>
-          This is 고규식 💁🏼
+          This is 큐식코 💁🏼
         </h1>
         <p></p>
       </DescriptionContents>
