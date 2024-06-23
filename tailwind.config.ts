@@ -105,7 +105,7 @@ const config: Config = {
       },
       animation: {
         gradient: "animatedgradient 6s ease infinite alternate",
-        gradientbg: "animatebackground 3s ease infinite alternate",
+        gradientbg: "animatebackground 12s ease infinite alternate",
       },
     },
   },
