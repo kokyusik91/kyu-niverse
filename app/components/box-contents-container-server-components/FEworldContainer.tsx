@@ -10,7 +10,7 @@ export default function FEworldContainer() {
         fill
         alt="nasa"
       />
-      <h1 className="z-10 text-right font-extrabold lg:text-[50px] xl:text-[70px] 2xl:text-[90px]">
+      <h1 className="z-10 text-right text-5xl font-extrabold lg:text-[50px] xl:text-[70px] 2xl:text-[90px]">
         KYU&apos;S
         <br /> FE World
       </h1>

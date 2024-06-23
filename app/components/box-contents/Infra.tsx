@@ -1,9 +1,12 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import Link from 'next/link';
-import { INFRA_NOTION_URL } from '@/app/constants/external-url';
-import { useColor } from '@/app/providers/ColorProvider';
+import { ReactNode } from "react";
+import Link from "next/link";
+import { INFRA_NOTION_URL } from "@/app/constants/external-url";
+import { useColor } from "@/app/providers/ColorProvider";
+import OriginalContents from "../OriginalContents";
+import { useDesciption } from "@/app/providers/DescriptionProvider";
+import DescriptionContents from "../DescriptionContents";
 
 type InfraProps = {
   children: ReactNode;
@@ -11,14 +14,21 @@ type InfraProps = {
 
 export default function Infra({ children }: InfraProps) {
   const { generateColor } = useColor();
+  const { hasDescription } = useDesciption();
 
   return (
     <Link
       href={INFRA_NOTION_URL}
-      target='_blank'
-      className={`target grow transition-all ${generateColor('bg-sky-400')}`}
+      target="_blank"
+      className={`target grow p-10 transition-all ${generateColor("bg-zinc-800")}`}
     >
-      {children}
+      <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
+      <DescriptionContents isActive={hasDescription}>
+        <h1 className={`mb-3 text-3xl font-extrabold text-zinc-900`}>
+          홈 서버 프로젝트 💻
+        </h1>
+        <p>집에 있는 은퇴한 맥북과 공유기로 홈서버를 구축 해보았어요! 💻</p>
+      </DescriptionContents>
     </Link>
   );
 }

@@ -1,13 +1,37 @@
+import Link from "next/link";
 import Empty from "../box-contents/Empty";
 
 export default function EmptyContainer() {
   return (
     <Empty>
-      {/* <form action={createContents} className='mx-auto'>
-        <input name='contents' className='text-zinc-800 mr-10 p-3' />
-        <SubmitButton />
-      </form> */}
-      <h1></h1>
+      <ul className="flex h-full w-full flex-col gap-3">
+        <Link
+          href={""}
+          className="target flex w-full flex-grow items-center justify-center rounded-lg p-3 text-2xl font-bold text-zinc-800"
+        >
+          Wat I 😵
+        </Link>
+        <Link
+          href={""}
+          className="target flex w-full flex-grow items-center justify-center rounded-lg p-3 text-2xl font-bold text-zinc-800"
+        >
+          Wat I 🙏🏻
+        </Link>
+
+        <Link
+          href={""}
+          className="target flex w-full flex-grow items-center justify-center rounded-lg p-3 text-2xl font-bold text-zinc-800"
+        >
+          Wat I 👍🏻
+        </Link>
+
+        <Link
+          href={""}
+          className="target flex w-full flex-grow items-center justify-center rounded-lg p-3 text-2xl font-bold text-zinc-800"
+        >
+          Wat I 😽
+        </Link>
+      </ul>
     </Empty>
   );
 }
