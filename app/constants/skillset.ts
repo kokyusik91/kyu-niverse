@@ -2,13 +2,13 @@ export const SKILL = [
   {
     value: "react",
     label: "REACT",
-    color: "text-blue-400",
+    color: "bg-gradient-to-t from-blue-200 to-blue-500",
     url: "/react2.svg",
   },
   {
     value: "next",
     label: "NEXT.JS",
-    color: "text-gray-500",
+    color: "bg-gradient-to-t from-gray-200 to-gray-700",
     url: "/nextjs.svg",
   },
   {
@@ -20,43 +20,43 @@ export const SKILL = [
   {
     value: "express",
     label: "EXPRESS",
-    color: "text-green-500",
+    color: "bg-gradient-to-t from-green-600 to-green-800",
     url: "/node-js.svg",
   },
   {
     value: "vue",
     label: "VUE.JS",
-    color: "text-green-400",
+    color: "bg-gradient-to-t from-green-200 to-green-400",
     url: "/vue.png",
   },
   {
     value: "svelte",
     label: "SVELETE",
-    color: "text-orange-400",
+    color: "bg-gradient-to-t from-red-100 to-orange-500",
     url: "/svelte.png",
   },
   {
     value: "nest",
     label: "NEST.JS",
-    color: "text-red-400",
+    color: "bg-gradient-to-t from-red-300 to-red-700",
     url: "/nest.svg",
   },
   {
     value: "webpack",
     label: "WEBPACK",
-    color: "text-zinc-200",
+    color: "bg-gradient-to-t from-blue-200 to-blue-300",
     url: "/webpack.svg",
   },
   {
     value: "vite",
     label: "VITE",
-    color: "text-purple-400",
+    color: "bg-gradient-to-t from-blue-300 to-purple-600",
     url: "/vite.svg",
   },
   {
     value: "nginx",
     label: "NGINX",
-    color: "text-green-600",
+    color: "bg-gradient-to-t from-green-600 to-green-800",
     url: "/nginx.svg",
   },
 ];
