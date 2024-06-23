@@ -1,4 +1,5 @@
 ## 큐니버스 🌍
+
 ![kyuniverse](/public/kyuniverse.jpg)
 
 kyusik + 유니버스를 의미하는 큐니버스는 저를 표현할 수 있는 키워드들을 UI로 표현한 웹사이트 입니다. 현재 컨텐츠들이 대부분이 개발 분야에 치중되어 있지만, 비 개발 분야의 유니버스들도 점차 추가할 예정이예요! 😃
@@ -9,8 +10,7 @@ kyusik + 유니버스를 의미하는 큐니버스는 저를 표현할 수 있�
 
 ## 소개 페이지 🎨
 
-[https://kyu-niverse.com](https://kyu-niverse.com)
-
+[소개 페이지로 Go 🚀](https://jamsilcrops-library.notion.site/Kyu-niverse-24211d28ab63473b87522c99f00c5956)
 
 ## 사용했던 도구들 🛠️
 
@@ -19,25 +19,29 @@ kyusik + 유니버스를 의미하는 큐니버스는 저를 표현할 수 있�
 그래서 Kyu-niverse를 만들기 위해 제가 골랐던 도구 모음 입니다.
 
 ### Next.js
+
 큐니버스 컨텐츠들의 성격상, 실시간으로 바뀌어야하는 데이터들이 아니기 떄문에 그리고 매번 데이터를 요청해서 화면을 그려줄 필요가 없어, Next.js의 [static exports](https://nextjs.org/docs/app/building-your-application/deploying/static-exports)를 사용하는게 맞다고 판단하였어요. 그 기능을 사용하면 빌드 타임에 필요한 데이터들을 fetch하여 이미 필요한 컨텐츠로 채워진 document를 생성합니다. 그렇기 때문에 SEO의 이점도 챙길수 있고요. 그렇다면, React도 있고, [Gastby](https://www.gatsbyjs.com/) 같은 정적 사이트 생성기도 있었지만 그럼에도 Next.js를 선택한 이유가 있다면, 앞으로의 확장성 입니다.  
 실시간으로 업데이트 되야하는 데이터, 그리고 api를 사용한 유저들의 인터렉션 기능 추가가 되면서 백엔드 사이드가 필요해질 순간이 올 것이라 판단하였습니다.
-Next.js는 자신들을 이렇게 표현합니다.   
-> Next.js is a React framework for building full-stack web applications.    
+Next.js는 자신들을 이렇게 표현합니다.
+
+> Next.js is a React framework for building full-stack web applications.
 
 백엔드 자원을 어떻게 구성할지는 좀 더 고민해봐야겠지만, Next.js의 서버 기능들을 이용하면 별도의 백엔드 프레임워크를 쓰지 않고 풀 스택 웹을 만들 수 있습니다! 👍🏻
 
 ### Tailwind css
-[tailwind css](https://tailwindcss.com/)는 호불호가 갈리는 라이브러리중 하나예요. 누구는 tailwind에서 지시하는 커스텀 classname와 친숙해지면 정말 빠르게 개발을 할 수 있다. 혹자는 렌더링쪽 코드가 classname으로 도배되서 오히려 가독성을 해친다 라고 말합니다. 결론 부터 말하자면 저는 tailwind css를 선택하였습니다.   
-회사에서는 styled-components라는 css-in-js 방식의 라이브러리를 사용중입니다. 저는 이 라이브러리를 사용하면서 
-1. 오히려 스타일 컴포넌트 이름을 지어줘야함. 
-2. 그 스타일 컴포넌트들을 따로 어느곳에서는 관리를 해줘야한다는 관점에서 불필요한 파일증가에 피로감을 느꼈습니다. 
+
+[tailwind css](https://tailwindcss.com/)는 호불호가 갈리는 라이브러리중 하나예요. 누구는 tailwind에서 지시하는 커스텀 classname와 친숙해지면 정말 빠르게 개발을 할 수 있다. 혹자는 렌더링쪽 코드가 classname으로 도배되서 오히려 가독성을 해친다 라고 말합니다. 결론 부터 말하자면 저는 tailwind css를 선택하였습니다.  
+회사에서는 styled-components라는 css-in-js 방식의 라이브러리를 사용중입니다. 저는 이 라이브러리를 사용하면서
+
+1. 오히려 스타일 컴포넌트 이름을 지어줘야함.
+2. 그 스타일 컴포넌트들을 따로 어느곳에서는 관리를 해줘야한다는 관점에서 불필요한 파일증가에 피로감을 느꼈습니다.
 
 그리고 렌더링쪽 코드에 어떤게 스타일용 컴포넌트인지, 어느게 로직을 다루는 컴포넌트인지 한 눈에 파악하기 어려웠단 점이 있습니다. 하지만 tailwind css는 명확합니다. 애초에 html태그에 스타일이 선언되어있고, 렌더링하는 코드내에서 스타일과 로직이 포함된 컴포넌트가 한 눈에 구분되어 보여집니다.  
-더구나 styled-components는 js위에서 동작하기 때문에, SSR 환경에서 추가적으로 셋팅 해주어야하는 부분이 존재하지만, tailwind는 정적 css를 사용하기 때문에 그럴필요가 없지요!    
+더구나 styled-components는 js위에서 동작하기 때문에, SSR 환경에서 추가적으로 셋팅 해주어야하는 부분이 존재하지만, tailwind는 정적 css를 사용하기 때문에 그럴필요가 없지요!  
 그밖에 styled-components와 tailwind css의 성능 차이는 더 좋은글 들이 많기 때문에 그것을 참고해주세요!
 
-
 ### Notion API
+
 처음부터 큐니버스에 표현할 데이터들이 노션에 정리되어 있었기 때문에, 당연히 노션 API를 사용하는것이 개발도 더 빠르게 할 수 있다고 생각했어요!
 노션에서는 데이터베이스에 접근할 수 있는 api를 제공해 줍니다. 데이터 베이스에 접근하기 위해 secret key같은게 필요한데, 이것은 github 환경 변수에 넣어놓고 빌드할때, .env.production 파일을 생성하고 그때 secret key를 통해 db에서 데이터를 가져온 후 화면에 컨텐츠를 채웁니다.  
 앞으로 서버 기능이 추가되더라도 Next.js 서버에서 db 접근을 하기 때문에 브라우저에 노출될 일도 없어요!
@@ -46,7 +50,7 @@ Next.js는 자신들을 이렇게 표현합니다.
 
 Next.js를 사용하고 있지만, 컨텐츠들 특성상 Next.js 서버를 띄우고 실시간으로 요청을 받을 필요가 없다고 판단하여, static exports 라는 기능을 사용하여 현재 정적파일들 서빙하는 방식입니다. (React 배포와 유사)  
 그렇다고 코드 상에서 Next.js의 서버기능을 아예 사용하지 않는것은 아닙니다. React Server Component를 사용하여 빌드타임때 외부 API에서 데이터를 미리 채워 놓은상태로 정적파일이 만들어집니다.  
-빌드된 정적파일을 github Action을 통해 S3에 업로드 합니다. S3에서 정적 자원들을 제공하지만, S3에 직접 접근하는건 여러모로 단점이 존재하기 때문에 CDN 서비스인 CloudFront를 두고 유저들은 CloudFront에서 조금 더 빠르게 데이터를 제공받고, S3에서 가져온 데이터를 캐싱해놓고 제공하기 때문에 비용 절감의 이득까지 존재해요. 
+빌드된 정적파일을 github Action을 통해 S3에 업로드 합니다. S3에서 정적 자원들을 제공하지만, S3에 직접 접근하는건 여러모로 단점이 존재하기 때문에 CDN 서비스인 CloudFront를 두고 유저들은 CloudFront에서 조금 더 빠르게 데이터를 제공받고, S3에서 가져온 데이터를 캐싱해놓고 제공하기 때문에 비용 절감의 이득까지 존재해요.
 
 ### AWS S3 🪣
 
@@ -62,6 +66,8 @@ S3 정적 호스팅 주소가 아닌, 도메인 이름을 정하고 그 주소�
 
 ### AWS Cloud Front
 
+CloudFront는 CDN 입니다! 사용할 경우 여러가지 이점이 있는데요! 첫 번째로는 엣지 로케이션에서 리소스를 빠르게 사용자들에게 제공할 수 있어요! 두 번째로는 리소스를 S3에서 직접 가져오는게 아닌 CloudFront에서 캐싱된 데이터를 가져오기 때문에 비용을 아낄 수 있어요!  
+kyu-niverse도 CloudFront를 사용해서 정적 리소스를 좀 더 효율적으로 제공하고 있습니다.
 
 ### Github Action ⏩️
 
