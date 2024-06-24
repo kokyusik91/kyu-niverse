@@ -12,6 +12,7 @@ type SkillDetails = {
   url: string;
 };
 
+// TODO: 현재 무한 롤링배너가 되어야하는데, 무한으로 이어지지 않고 한번 끊키는 현상 발견 => 원인 파악후 교체
 export default function Skillset() {
   const { generateTextColor } = useColor();
   const [target, setTarget] = useState<SkillDetails | null>(null);

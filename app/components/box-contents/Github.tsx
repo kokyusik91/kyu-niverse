@@ -21,7 +21,7 @@ export default function Github({ children }: GithubProps) {
       href={GITHUB_URL}
       target="_blank"
       className={`target relative min-h-44 grow transition-all ${generateColor(
-        "bg-zinc-800",
+        "bg-purple-400",
       )}`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>

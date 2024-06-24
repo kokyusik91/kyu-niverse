@@ -17,7 +17,7 @@ export default function Activity({ children }: ActivityProps) {
   return (
     <div
       className={`target p-6 transition-all ${generateColor(
-        "bg-gradient-to-r from-green-200 to-indigo-300",
+        "bg-gradient-to-r from-indigo-300 to-green-200",
       )}`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>

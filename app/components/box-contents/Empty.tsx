@@ -17,15 +17,15 @@ export default function Empty({ children }: EmptyProps) {
   return (
     <div
       className={`target h-full grow p-4 transition-all ${generateColor(
-        "bg-zinc-800",
+        "bg-lime-300",
       )}`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>
         <h1 className={`mb-3 text-3xl font-extrabold text-zinc-900`}>
-          다음 🏋🏻‍♀️
+          This is 큐식코 💁🏼
         </h1>
-        <p>집에 있는 은퇴한 맥북과 공유기로 홈서버를 구축 해보았어요! 💻</p>
+        <p></p>
       </DescriptionContents>
     </div>
   );

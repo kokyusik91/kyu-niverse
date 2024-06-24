@@ -67,7 +67,7 @@ export default function Health() {
         </h1>
         <div key={animationKey} className="flex justify-end">
           <time className="mr-1 inline-block animate-[2s_roundup_ease-in-out] bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text font-extrabold text-transparent xl:text-xl 2xl:text-3xl">
-            3
+            4
           </time>
           <h1
             className={`font-bold xl:text-xl 2xl:text-3xl ${generateTextColor("white")}`}

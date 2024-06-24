@@ -28,7 +28,7 @@ export default function Brunch() {
       onMouseEnter={handleBrunch}
       onMouseLeave={handleBrunch2}
       className={`target relative inline-flex min-h-44 grow flex-col transition-all ${generateColor(
-        "bg-zinc-800",
+        "bg-green-300",
       )}`}
     >
       <OriginalContents isActive={hasDescription}>

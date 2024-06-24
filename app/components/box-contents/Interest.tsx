@@ -16,7 +16,7 @@ export default function Interest({ children }: InterestProps) {
 
   return (
     <div
-      className={`target h-2/6 transition-all ${generateColor("bg-zinc-800")} p-10`}
+      className={`target h-2/6 transition-all ${generateColor("bg-blue-300")} p-10`}
     >
       <OriginalContents isActive={hasDescription}>{children}</OriginalContents>
       <DescriptionContents isActive={hasDescription}>

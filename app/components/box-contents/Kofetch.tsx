@@ -28,7 +28,7 @@ export default function Kofetch() {
       target="_blank"
       onMouseEnter={handleKofetch}
       onMouseLeave={handleKofetch2}
-      className={`target inline-block min-h-32 transition-all lg:h-2/6 ${generateColor("bg-zinc-800")}`}
+      className={`target inline-block min-h-32 transition-all lg:h-2/6 ${generateColor("bg-emerald-300")}`}
     >
       <OriginalContents isActive={hasDescription}>
         <div className="flex items-end">
