@@ -15,7 +15,7 @@ export default function Medic({ children }: MedicProps) {
   const { hasDescription } = useDesciption();
   return (
     <Link
-      href={""}
+      href={MEDIC_NOTION_URL}
       target="_blank"
       className={`target inline-block min-h-44 grow bg-[url('/code.jpg')] bg-right-top transition-all`}
     >
