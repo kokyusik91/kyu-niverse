@@ -1,0 +1,333 @@
+/* ============ Neo-Brutalism Font ============ */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&family=Noto+Serif+KR:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+
+/* ============ 98.css Leak Prevention ============ */
+[data-neo-desktop] button {
+  box-shadow: none !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+[data-neo-desktop] button:active {
+  box-shadow: none !important;
+}
+
+/* ============ Window Animations ============ */
+@keyframes neoWindowOpen {
+  0% { opacity: 0; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes neoWindowClose {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes neoWindowMinimize {
+  0% { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.4) translateY(70vh); }
+}
+
+@keyframes neoWindowRestore {
+  0% { opacity: 0; transform: scale(0.4) translateY(70vh); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes neoPop {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ============ Window States ============ */
+.neo-window { transform-origin: center center; }
+.neo-window--opening { animation: neoWindowOpen 0.25s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.neo-window--closing { animation: neoWindowClose 0.18s ease-in forwards; pointer-events: none; }
+.neo-window--minimizing { animation: neoWindowMinimize 0.25s ease-in forwards; pointer-events: none; }
+.neo-window--restoring { animation: neoWindowRestore 0.25s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.neo-window--maximizing { transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease; }
+
+/* ============ Popups ============ */
+.neo-start-menu--open { animation: neoPop 0.2s ease-out forwards; }
+.neo-menu-dropdown { animation: neoPop 0.15s ease-out forwards; }
+
+/* ============ Desktop Icon ============ */
+.neo-desktop-icon {
+  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+}
+.neo-desktop-icon:hover { transform: translateY(-2px); }
+.neo-desktop-icon:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: none !important;
+}
+
+/* ============ Neo Button Press Effect ============ */
+.neo-btn:active {
+  transform: translate(2px, 2px) !important;
+  box-shadow: none !important;
+}
+
+/* ============ Start Menu Hover ============ */
+.neo-start-menu-item:hover {
+  background: var(--hover-color, #FF6B6B);
+}
+
+/* ============ Scrollbar Hide ============ */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============ Scrollbar ============ */
+.neo-scrollbar::-webkit-scrollbar { width: 8px; }
+.neo-scrollbar::-webkit-scrollbar-track { background: var(--color-neo-bg); }
+.neo-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-neo-border);
+  border: 2px solid var(--color-neo-bg);
+  border-radius: 12px;
+}
+
+/* ============ Blog Content Styles ============ */
+.neo-blog-content {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333D4B;
+  max-width: 780px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  font-family: var(--blog-font-family);
+  transition: font-family 0.15s ease;
+  user-select: text;
+}
+
+.neo-blog-content.font-pretendard {
+  --blog-font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+}
+
+.neo-blog-content.font-noto-serif {
+  --blog-font-family: 'Noto Serif KR', 'Batang', Georgia, serif;
+}
+
+.neo-blog-content.font-ibm-plex {
+  --blog-font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+}
+
+.neo-blog-content h1 {
+  font-size: 1.6em;
+  font-weight: 800;
+  margin: 2em 0 0.6em;
+  padding-bottom: 0.3em;
+  border-bottom: 3px solid var(--color-neo-border);
+  color: #191F28;
+}
+
+.neo-blog-content h2 {
+  font-size: 1.4em;
+  font-weight: 700;
+  margin: 2.2em 0 0.7em;
+  padding-left: 12px;
+  border-left: 4px solid var(--color-neo-accent);
+  color: #191F28;
+}
+
+.neo-blog-content h3 {
+  font-size: 1.2em;
+  font-weight: 700;
+  margin: 1.8em 0 0.5em;
+  padding-left: 12px;
+  border-left: 4px solid var(--color-neo-border);
+  color: #191F28;
+}
+
+.neo-blog-content p {
+  margin: 1.2em 0;
+}
+
+.neo-blog-content a {
+  color: var(--color-neo-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.neo-blog-content code {
+  background: var(--color-neo-bg);
+  border: 2px solid var(--color-neo-border);
+  border-radius: 6px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+  font-family: 'Space Mono', monospace;
+  color: var(--color-neo-warning);
+  font-weight: 700;
+}
+
+/* ---- Code Block (shiki + traffic lights + line numbers) ---- */
+.neo-code-block {
+  margin: 1.5em 0;
+  border: 3px solid var(--color-neo-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 4px 4px 0px 0px var(--color-neo-border);
+  position: relative;
+}
+
+.neo-code-block pre.shiki {
+  margin: 0;
+  padding: 40px 16px 16px;
+  overflow-x: auto;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.neo-code-block pre.shiki code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  font-family: 'Space Mono', monospace;
+  font-weight: 400;
+  counter-reset: line;
+}
+
+.neo-code-block pre.shiki code .line {
+  display: inline-block;
+  width: 100%;
+}
+
+.neo-code-block pre.shiki code .line::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2em;
+  margin-right: 1em;
+  text-align: right;
+  color: #636d83;
+  font-size: 12px;
+  user-select: none;
+}
+
+/* Traffic light dots */
+.neo-code-block::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow:
+    20px 0 0 #febc2e,
+    40px 0 0 #28c840;
+  z-index: 1;
+}
+
+/* Fallback for pre without shiki */
+.neo-blog-content pre:not(.shiki) {
+  background: #282c34;
+  border: 3px solid var(--color-neo-border);
+  border-radius: 12px;
+  padding: 16px;
+  overflow-x: auto;
+  margin: 1em 0;
+  color: #abb2bf;
+  box-shadow: 4px 4px 0px 0px var(--color-neo-border);
+}
+
+.neo-blog-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  font-family: 'Space Mono', monospace;
+}
+
+.neo-blog-content table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 3px solid var(--color-neo-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 1em 0;
+}
+
+.neo-blog-content th {
+  background: var(--color-neo-accent);
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 16px;
+  border-bottom: 3px solid var(--color-neo-border);
+  font-size: 13px;
+}
+
+.neo-blog-content td {
+  padding: 10px 16px;
+  border-bottom: 2px solid var(--color-neo-border);
+  font-size: 13px;
+}
+
+.neo-blog-content tr:last-child td {
+  border-bottom: none;
+}
+
+.neo-blog-content th + th,
+.neo-blog-content td + td {
+  border-left: 2px solid var(--color-neo-border);
+}
+
+.neo-blog-content ul,
+.neo-blog-content ol {
+  margin: 1em 0;
+  padding-left: 1.6em;
+}
+
+.neo-blog-content li {
+  margin: 0.5em 0;
+}
+
+.neo-blog-content li > ul,
+.neo-blog-content li > ol {
+  margin: 0.3em 0;
+}
+
+.neo-blog-content blockquote {
+  border: 3px solid var(--color-neo-border);
+  border-left: 5px solid var(--color-neo-accent);
+  background: var(--color-neo-bg);
+  margin: 1.5em 0;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-style: italic;
+  font-size: 0.95em;
+  color: var(--color-neo-text);
+  box-shadow: 3px 3px 0px 0px var(--color-neo-border);
+}
+
+.neo-blog-content img {
+  border: 3px solid var(--color-neo-border);
+  border-radius: 12px;
+  box-shadow: 4px 4px 0px 0px var(--color-neo-border);
+  margin: 1em 0;
+  max-width: 100%;
+}
+
+.neo-blog-content strong {
+  font-weight: 700;
+  background: var(--color-neo-accent);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.neo-blog-content hr {
+  border: none;
+  height: 4px;
+  background: var(--color-neo-border);
+  border-radius: 2px;
+  margin: 2.5em 0;
+  box-shadow: 2px 2px 0px 0px var(--color-neo-border);
+}

@@ -1,0 +1,61 @@
+export default function ResumeIcon({ size = 28 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6 4H20L26 10V28H6V4Z"
+        fill="#FFFDF7"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M20 4V10H26"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="12"
+        cy="16"
+        r="3"
+        fill="#1A1A2E"
+        stroke="#1A1A2E"
+        strokeWidth="1.5"
+      />
+      <line
+        x1="17"
+        y1="14"
+        x2="23"
+        y2="14"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="17"
+        y1="18"
+        x2="22"
+        y2="18"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="10"
+        y1="23"
+        x2="23"
+        y2="23"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}

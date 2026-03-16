@@ -1,0 +1,56 @@
+export default function BlogIcon({ size = 28 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="6"
+        y="4"
+        width="20"
+        height="24"
+        rx="2"
+        fill="#FFFDF7"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+      />
+      <line
+        x1="10"
+        y1="11"
+        x2="22"
+        y2="11"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="10"
+        y1="16"
+        x2="20"
+        y2="16"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <line
+        x1="10"
+        y1="21"
+        x2="17"
+        y2="21"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M22 19L27 14L29 16L24 21L22 22L22 19Z"
+        fill="#FFE66D"
+        stroke="#1A1A2E"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

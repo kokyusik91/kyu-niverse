@@ -1,0 +1,61 @@
+export default function BookstoreIcon({ size = 28 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect
+        x="4"
+        y="6"
+        width="7"
+        height="22"
+        rx="1"
+        fill="#FFE66D"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+      />
+      <line
+        x1="7.5"
+        y1="10"
+        x2="7.5"
+        y2="14"
+        stroke="#1A1A2E"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <rect
+        x="12"
+        y="4"
+        width="8"
+        height="24"
+        rx="1"
+        fill="#FF6B6B"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+      />
+      <line
+        x1="16"
+        y1="8"
+        x2="16"
+        y2="13"
+        stroke="#1A1A2E"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <rect
+        x="21"
+        y="8"
+        width="7"
+        height="20"
+        rx="1"
+        fill="#4ECDC4"
+        stroke="#1A1A2E"
+        strokeWidth="2.5"
+        transform="rotate(5 24.5 18)"
+      />
+    </svg>
+  );
+}
