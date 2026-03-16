@@ -58,7 +58,55 @@ import {
   ExternalLink,
   FileText,
   Settings,
+  Wallpaper,
 } from "lucide-react";
+
+type BgPattern = "checkerboard" | "dots" | "stripes" | "noise" | "memphis";
+
+const BG_PATTERN_LABEL: Record<BgPattern, string> = {
+  checkerboard: "체스판",
+  dots: "도트",
+  stripes: "스트라이프",
+  noise: "노이즈",
+  memphis: "멤피스",
+};
+
+const BG_PATTERNS: Record<BgPattern, React.CSSProperties> = {
+  checkerboard: {
+    backgroundImage: `
+      linear-gradient(45deg, rgba(26,26,46,0.03) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(26,26,46,0.03) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(26,26,46,0.03) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(26,26,46,0.03) 75%)
+    `,
+    backgroundSize: "20px 20px",
+    backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
+  },
+  dots: {
+    backgroundImage: `radial-gradient(circle, #1A1A2E 1.2px, transparent 1.2px)`,
+    backgroundSize: "20px 20px",
+  },
+  stripes: {
+    backgroundImage: `repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(26,26,46,0.06) 8px,
+      rgba(26,26,46,0.06) 10px
+    )`,
+  },
+  noise: {},
+  memphis: {
+    backgroundImage: `
+      radial-gradient(circle, #FF6B6B 1.5px, transparent 1.5px),
+      radial-gradient(circle, #4ECDC4 1px, transparent 1px),
+      linear-gradient(45deg, transparent 48%, #FFE66D 48%, #FFE66D 52%, transparent 52%),
+      radial-gradient(circle, #339AF0 1.2px, transparent 1.2px)
+    `,
+    backgroundSize: "60px 60px, 40px 40px, 80px 80px, 50px 50px",
+    backgroundPosition: "0 0, 20px 30px, 10px 10px, 35px 15px",
+  },
+};
 
 function getWindowContent(
   id: string,
@@ -95,7 +143,31 @@ function getWindowContent(
   }
 }
 
-// --- Hooks ---
+function useNoiseBackground() {
+  const [noiseUrl, setNoiseUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const size = 150;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const imageData = ctx.createImageData(size, size);
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      const v = Math.random() * 255;
+      imageData.data[i] = v;
+      imageData.data[i + 1] = v;
+      imageData.data[i + 2] = v;
+      imageData.data[i + 3] = 18;
+    }
+    ctx.putImageData(imageData, 0, 0);
+    setNoiseUrl(canvas.toDataURL());
+  }, []);
+
+  return noiseUrl;
+}
 
 function useDesktopSelection(
   setSelectedIcons: (ids: Set<string>) => void,
@@ -185,12 +257,16 @@ function DesktopContextMenu({
   onArrangeByName,
   onArrangeByType,
   onRefresh,
+  bgPattern,
+  onChangeBgPattern,
 }: {
   autoArrange: boolean;
   onToggleAutoArrange: () => void;
   onArrangeByName: () => void;
   onArrangeByType: () => void;
   onRefresh: () => void;
+  bgPattern: BgPattern;
+  onChangeBgPattern: (pattern: BgPattern) => void;
 }) {
   return (
     <ContextMenuContent className="bg-neo-surface border-neo-border shadow-neo-md font-neo text-neo-text min-w-[200px] rounded-xl border-3 p-1 text-[13px] font-semibold">
@@ -266,6 +342,27 @@ function DesktopContextMenu({
 
       <ContextMenuSeparator className="bg-neo-border h-[3px] rounded-sm" />
 
+      <ContextMenuSub>
+        <ContextMenuSubTrigger className="rounded-lg font-semibold">
+          <Wallpaper className="mr-2 size-4" />
+          배경화면
+        </ContextMenuSubTrigger>
+        <ContextMenuSubContent className="bg-neo-surface border-neo-border shadow-neo-md rounded-xl border-3 p-1">
+          {(Object.keys(BG_PATTERN_LABEL) as BgPattern[]).map((key) => (
+            <ContextMenuCheckboxItem
+              key={key}
+              checked={bgPattern === key}
+              onCheckedChange={() => onChangeBgPattern(key)}
+              className="rounded-lg font-semibold"
+            >
+              {BG_PATTERN_LABEL[key]}
+            </ContextMenuCheckboxItem>
+          ))}
+        </ContextMenuSubContent>
+      </ContextMenuSub>
+
+      <ContextMenuSeparator className="bg-neo-border h-[3px] rounded-sm" />
+
       <ContextMenuItem className="rounded-lg font-semibold">
         <Settings className="mr-2 size-4" />
         속성
@@ -311,6 +408,8 @@ export default function Desktop({
   const { setStartMenuOpen } = useOverlayState();
 
   const [autoArrange, setAutoArrange] = useState(false);
+  const [bgPattern, setBgPattern] = useState<BgPattern>("dots");
+  const noiseUrl = useNoiseBackground();
   const iconPositionsRef = useRef(iconPositions);
   useEffect(() => {
     iconPositionsRef.current = iconPositions;
@@ -357,16 +456,14 @@ export default function Desktop({
         <div
           data-neo-desktop
           className="bg-neo-bg relative h-screen w-screen overflow-hidden select-none"
-          style={{
-            backgroundImage: `
-              linear-gradient(45deg, rgba(26,26,46,0.03) 25%, transparent 25%),
-              linear-gradient(-45deg, rgba(26,26,46,0.03) 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, rgba(26,26,46,0.03) 75%),
-              linear-gradient(-45deg, transparent 75%, rgba(26,26,46,0.03) 75%)
-            `,
-            backgroundSize: "20px 20px",
-            backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
-          }}
+          style={
+            bgPattern === "noise" && noiseUrl
+              ? {
+                  backgroundImage: `url(${noiseUrl})`,
+                  backgroundRepeat: "repeat",
+                }
+              : BG_PATTERNS[bgPattern]
+          }
           onClick={handleDesktopClick}
           onMouseDown={handleSelectionMouseDown}
         >
@@ -409,6 +506,8 @@ export default function Desktop({
         }
         onArrangeByType={() => arrangeIcons(DESKTOP_ITEMS)}
         onRefresh={() => window.location.reload()}
+        bgPattern={bgPattern}
+        onChangeBgPattern={setBgPattern}
       />
     </ContextMenu>
   );
