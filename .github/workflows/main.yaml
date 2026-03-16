@@ -20,9 +20,13 @@ jobs:
 
       - name: Generate Environment Variables File for Production
         run: |
+          echo "NOTION_SECRET_KEY=$NOTION_SECRET_KEY" >> .env.production
+          echo "NOTION_BOOK_DATABASE_ID=$NOTION_BOOK_DATABASE_ID" >> .env.production
           echo "NEXT_PUBLIC_HASHTAG_API_URL=$NEXT_PUBLIC_HASHTAG_API_URL" >> .env.production
           echo "NEXT_PUBLIC_GAMES_API_URL=$NEXT_PUBLIC_GAMES_API_URL" >> .env.production
         env:
+          NOTION_SECRET_KEY: ${{ secrets.NOTION_SECRET_KEY }}
+          NOTION_BOOK_DATABASE_ID: ${{ secrets.NOTION_BOOK_DATABASE_ID }}
           NEXT_PUBLIC_HASHTAG_API_URL: ${{ secrets.NEXT_PUBLIC_HASHTAG_API_URL }}
           NEXT_PUBLIC_GAMES_API_URL: ${{ secrets.NEXT_PUBLIC_GAMES_API_URL }}
 
