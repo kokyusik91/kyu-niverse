@@ -1,4 +1,4 @@
-import { BasicCardSlider } from '../components/slider/BasicCardSlider';
+import { BasicCardSlider } from '@/app/old/components/slider/BasicCardSlider';
 
 export default async function Slide() {
   return (
