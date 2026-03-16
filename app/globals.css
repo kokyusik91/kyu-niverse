@@ -1,6 +1,52 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-neo: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-neo-heading: 'Space Mono', 'Courier New', monospace;
+  --font-space-grotesk: 'Space Grotesk', sans-serif;
+
+  --color-neo-primary: #FF6B6B;
+  --color-neo-secondary: #4ECDC4;
+  --color-neo-accent: #FFE66D;
+  --color-neo-success: #51CF66;
+  --color-neo-warning: #FF922B;
+  --color-neo-info: #339AF0;
+  --color-neo-bg: #FAF5EE;
+  --color-neo-surface: #FFFFFF;
+  --color-neo-text: #1A1A2E;
+  --color-neo-border: #1A1A2E;
+
+  --shadow-neo-sm: 2px 2px 0px 0px #1A1A2E;
+  --shadow-neo-md: 4px 4px 0px 0px #1A1A2E;
+  --shadow-neo-lg: 6px 6px 0px 0px #1A1A2E;
+
+  --font-mod: 'Inter', -apple-system, sans-serif;
+  --color-mod-bg: #0f172a;
+  --color-mod-bg-light: #1e293b;
+  --color-mod-accent: #3b82f6;
+  --color-mod-accent-purple: #a78bfa;
+  --color-mod-accent-light: #60a5fa;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius: 0.5rem;
+}
 
 @font-face {
   font-family: "PoetsenOne";
@@ -13,13 +59,7 @@ body {
   color: white;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
-/* TODO: 클래스 이름으로 선언한 css들은 조만간 tailwind.css의 classname으로 옮겨야함. */
+/* TODO: 기존 kyuniverse old style 이라서 삭제 혹은 마이그레이션 해야함. */
 .target {
   border-radius: 20px;
   box-shadow: 16px 14px 20px #0000001c;
@@ -47,39 +87,17 @@ body {
 }
 
 @keyframes movement {
-  0% {
-    transform: translateY(calc(-48px * 0));
-  }
-  10% {
-    transform: translateY(calc(-48px * 1));
-  }
-  20% {
-    transform: translateY(calc(-48px * 2));
-  }
-  30% {
-    transform: translateY(calc(-48px * 3));
-  }
-  40% {
-    transform: translateY(calc(-48px * 4));
-  }
-  50% {
-    transform: translateY(calc(-48px * 5));
-  }
-  60% {
-    transform: translateY(calc(-48px * 6));
-  }
-  70% {
-    transform: translateY(calc(-48px * 7));
-  }
-  80% {
-    transform: translateY(calc(-48px * 8));
-  }
-  90% {
-    transform: translateY(calc(-48px * 9));
-  }
-  100% {
-    transform: translateY(calc(-48px * 10));
-  }
+  0% { transform: translateY(calc(-48px * 0)); }
+  10% { transform: translateY(calc(-48px * 1)); }
+  20% { transform: translateY(calc(-48px * 2)); }
+  30% { transform: translateY(calc(-48px * 3)); }
+  40% { transform: translateY(calc(-48px * 4)); }
+  50% { transform: translateY(calc(-48px * 5)); }
+  60% { transform: translateY(calc(-48px * 6)); }
+  70% { transform: translateY(calc(-48px * 7)); }
+  80% { transform: translateY(calc(-48px * 8)); }
+  90% { transform: translateY(calc(-48px * 9)); }
+  100% { transform: translateY(calc(-48px * 10)); }
 }
 
 .slider-container {
@@ -96,7 +114,6 @@ body {
   width: 100%;
   height: 320px;
   overflow: hidden;
-  /* background-color: #8b5cf6; */
 }
 
 .slider-item {
@@ -132,4 +149,26 @@ body {
 
 .poetsen {
   font-family: "PoetsenOne", cursive;
+}
+
+/* shadcn/ui CSS variables */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 0 0% 9%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 0 0% 3.9%;
+  --radius: 0.5rem;
 }
