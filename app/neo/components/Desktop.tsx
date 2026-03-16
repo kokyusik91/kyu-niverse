@@ -27,6 +27,7 @@ import BlogContent from "./BlogContent";
 import BookstoreContent from "./bookstore/BookstoreContent";
 import InstagramContent from "./instagram/InstagramContent";
 import GamesContent from "./games/GamesContent";
+import NotificationAlert from "./NotificationAlert";
 import type { BlogPostData } from "./NeoDesktop";
 import {
   ContextMenu,
@@ -387,6 +388,8 @@ export default function Desktop({
               {getWindowContent(w.id, blogPosts, initialPostSlug, books)}
             </Window>
           ))}
+
+          <NotificationAlert />
 
           <div onClick={(e) => e.stopPropagation()} data-taskbar>
             <Taskbar />
