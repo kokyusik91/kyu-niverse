@@ -22,7 +22,7 @@ type ColorProviderProps = {
 };
 
 export default function ColorProvider({ children }: ColorProviderProps) {
-  const [isColor, setIsColor] = useState<boolean>(false);
+  const [isColor, setIsColor] = useState<boolean>(true);
 
   const toggleColor = useCallback(() => {
     return setIsColor((prev) => !prev);
