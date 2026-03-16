@@ -16,6 +16,7 @@ export default async function BookContainer() {
   // TODO: 타입 보장되도록 타입 선언해야함.
   const cardList = bookDataList
     .map((item) => getClientDtoFromNotionAPI(item))
+    .filter((book) => book.properties?.subtitle?.rich_text?.[0]?.plain_text != null)
     .map((book) => ({
       id: book.id,
       link: book.link,
