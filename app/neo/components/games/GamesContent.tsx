@@ -8,7 +8,7 @@ import GameDashboard from "./GameDashboard";
 import GameFilterBar from "./GameFilterBar";
 import GameCard from "./GameCard";
 
-const API_BASE = process.env.NEXT_PUBLIC_GAMES_API_URL ?? "http://100.64.5.126:3200";
+const API_BASE = process.env.NEXT_PUBLIC_GAMES_API_URL;
 
 function toGameItem(raw: GamesApiResponse["data"][0]): GameItem {
   return {
@@ -31,12 +31,14 @@ async function fetchGames(): Promise<GameItem[]> {
   return json.data.map(toGameItem);
 }
 
-const SORT_COMPARATORS: Record<SortKey, (a: GameItem, b: GameItem) => number> = {
-  playHours: (a, b) => b.playHours - a.playHours,
-  metacritic: (a, b) => (b.metacritic ?? -1) - (a.metacritic ?? -1),
-  name: (a, b) => a.name.localeCompare(b.name),
-  releasedAt: (a, b) => (b.releasedAt ?? "").localeCompare(a.releasedAt ?? ""),
-};
+const SORT_COMPARATORS: Record<SortKey, (a: GameItem, b: GameItem) => number> =
+  {
+    playHours: (a, b) => b.playHours - a.playHours,
+    metacritic: (a, b) => (b.metacritic ?? -1) - (a.metacritic ?? -1),
+    name: (a, b) => a.name.localeCompare(b.name),
+    releasedAt: (a, b) =>
+      (b.releasedAt ?? "").localeCompare(a.releasedAt ?? ""),
+  };
 
 function useGames() {
   const { data: games = [], isLoading } = useQuery({
@@ -70,7 +72,9 @@ function useGames() {
     );
     const withMeta = games.filter((g) => g.metacritic != null);
     const avgMetacritic = withMeta.length
-      ? Math.round(withMeta.reduce((sum, g) => sum + g.metacritic!, 0) / withMeta.length)
+      ? Math.round(
+          withMeta.reduce((sum, g) => sum + g.metacritic!, 0) / withMeta.length,
+        )
       : 0;
 
     return {
@@ -108,14 +112,16 @@ function GamesExplorer() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <span className="text-gray-400 font-semibold text-sm">불러오는 중...</span>
+      <div className="flex h-full items-center justify-center">
+        <span className="text-sm font-semibold text-gray-400">
+          불러오는 중...
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
       <GameDashboard stats={stats} />
       <GameFilterBar
         genres={allGenres}
@@ -124,7 +130,7 @@ function GamesExplorer() {
         sortKey={sortKey}
         onSortChange={setSortKey}
       />
-      <div className="flex-1 overflow-y-auto neo-scrollbar p-5">
+      <div className="neo-scrollbar flex-1 overflow-y-auto p-5">
         <div className="grid grid-cols-3 gap-4">
           {filteredGames.map((game) => (
             <GameCard key={game.id} game={game} />

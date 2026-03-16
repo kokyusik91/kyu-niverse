@@ -1,6 +1,13 @@
-import type { Hashtag, Post, Influencer, InfluencerPost, ApiResponse, CollectionType } from "./types";
+import type {
+  Hashtag,
+  Post,
+  Influencer,
+  InfluencerPost,
+  ApiResponse,
+  CollectionType,
+} from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_HASHTAG_API_URL ?? "http://100.64.5.126:3001";
+const API_BASE = process.env.NEXT_PUBLIC_HASHTAG_API_URL;
 
 async function fetchApi<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
