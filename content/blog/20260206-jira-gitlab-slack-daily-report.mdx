@@ -1,0 +1,62 @@
+---
+title: Jira & GitLab 슬랙 데일리 리포트 자동화
+date: '2026-02-06'
+tags:
+  - slack
+category: dev
+summary: jira의 내가 할당된 일과 gitlab에서 내가 어사인되어있는 글 slack 알림으로 받기
+thumbnail: "\U0001F3A8"
+published: true
+---
+
+## 개요
+
+Jira API와 GitLab API를 활용하여 할당된 태스크, 리뷰 대기 MR, 담당 MR을 조회하고 Slack Webhook으로 알림을 전송하는 자동화 스크립트.
+
+## 구성 요소
+
+### Jira API 연동
+
+- Atlassian Cloud REST API (`/rest/api/3/search/jql`) 사용
+- 기존 `/rest/api/3/search`는 deprecated
+- JQL: `assignee=currentUser() AND status!=완료`
+- 인증: 이메일 + API Token (Basic Auth)
+
+### GitLab API 연동
+
+- Self-hosted GitLab 환경
+- `reviewer_username` 파라미터 미동작 → `reviewer_id` + `scope=all`로 해결
+- 유저 ID 조회: `/api/v4/user` 엔드포인트
+
+```bash
+# 리뷰 대기 MR
+GET /api/v4/merge_requests?reviewer_id={id}&state=opened&scope=all
+
+# 담당 MR
+GET /api/v4/merge_requests?assignee_id={id}&state=opened&scope=all
+```
+
+### Slack Webhook 연동
+
+- Incoming Webhook URL로 POST 전송
+- `--slack` 플래그로 슬랙 전송 토글
+
+### 크론잡 설정
+
+```bash
+# 매일 오전 10:30 (월~금)
+30 10 * * 1-5 source ~/.daily-report.env && /path/to/daily-report.sh --slack
+```
+
+- 환경변수는 `~/.daily-report.env` 파일로 분리 (`chmod 600`)
+- 컴퓨터 꺼져있으면 실행 안 됨 → GitHub Actions 전환 고려
+
+## 후속 과제
+
+- GitHub Actions로 크론잡 이전
+- CLI Jira 매니저 구축 (`jira start`, `jira done`)
+- MR → Jira 자동 상태 변경 (GitLab CI 연동)
+
+## 관련 노트
+
+- 20260204-claude-code-gitlab-mr-automation

@@ -1,0 +1,193 @@
+---
+title: CLS 문제로 스켈레톤을 도입해보자 — 뉴스룸 (feat. Suspense)
+date: '2024-03-08'
+tags:
+  - frontend
+  - UX
+category: dev
+summary: 코인니스 뉴스룸 페이지의 CLS 문제를 React Suspense + Skeleton UI로 해결한 과정
+thumbnail: ''
+published: true
+---
+
+## 집에서 코인니스를 켜보니
+
+코인니스 웹 서비스를 보면, CLS 문제가 심각하지 않다고 생각했다. CLS(Cumulative Layout Shift)란 페이지 로드 중 레이아웃이 밀리는 현상을 수치화한 지표다. 백엔드 데이터도 0.3초 이하로 서빙되고, 회사 내부 와이파이 환경도 빨라서 데이터가 포함된 화면이 나름 빠르게 보인다고 생각했다.
+
+어느 날 집에서 코인니스 서비스를 켜봤는데, 나름 충격적이었다. (집 인터넷이 안 좋다…)
+
+![CLS문제로-스켈레톤을-도입해보자-뉴스룸(feat-Suspense)-01.png](/blog/images/20240308-202403-cls-skeleton-suspense-newsroom.png)
+
+인터넷 환경이 느리다보니, 브라우저에서 보여줘야 하는 리소스를 다운받고 fetch하는 게 모두 느렸다. 브라우저에서 정적 리소스를 받아 화면은 그렸지만, 렌더링 후에 데이터 fetching을 하기 때문에 유저는 "화면이 떴는데 왜 아무것도 없지?"라고 생각할 수밖에 없다. 데이터를 받아오는 건지, 오류인 건지 아무것도 알 수가 없다.
+
+사용자에게 현재 로딩 중이라는 표시를 보여주는 것은 개발자가 취해야 하는 사용자에 대한 배려라고 생각한다. 진짜 오류라면 다른 UI를 보여주는 것도 고려해야 한다. 서비스 개발에 있어서 로딩 처리는 기획, 디자인, 개발 모두가 같이 고민해야 한다.
+
+로딩 UI라 하면 전체 화면을 덮는 로딩 스피너를 생각할 수 있다. 또 다른 UI로는 보여줘야 할 화면의 구성을 똑같이 본뜬 스켈레톤 UI가 있다. 뭐가 좋다 아니다를 말하기보단, 어떻게 로딩을 보여주는 게 유리한지에 따라 취사 선택하면 된다.
+
+## 스켈레톤을 선택한 이유
+
+페이지 성격에 따라 다음과 같은 조건들로 스켈레톤 UI를 선택했다.
+
+1. 한 페이지에서 총 3개의 API가 호출된다.
+   - 캐러셀에 보여주는 주요 뉴스 UI
+   - 카테고리 UI
+   - 카테고리에 매핑된 기사 리스트 UI
+2. 세 API 모두 병렬적으로 호출되어 노출돼도 된다. 카테고리 초기값이 0으로 `useState`에 설정되어 있어서, 종속 관계 없이 독립적으로 데이터를 가져올 수 있다.
+3. 각각의 UI가 독립된 로딩 상태를 가지게 할 수 있다.
+
+이 구조에서 React Suspense가 딱 맞았다.
+
+## React Suspense로 비동기 작업 핸들링
+
+React Suspense — 비동기 작업이 완료될 때까지 렌더링을 미루고, 그 동안 fallback 컴포넌트를 보여주는 React의 공식 기능이다. React 18에서 데이터 fetching용으로 정식 지원되기 시작했다.
+
+핵심은 간단하다. Suspense로 감싼 컴포넌트 내부에서 비동기 작업이 일어나면, 작업이 완료되기 전까지는 `fallback`에 넘긴 컴포넌트를 보여주고, 완료되면 실제 children을 렌더링한다. 이 fallback에 스켈레톤 UI를 넣으면 된다.
+
+뉴스룸 페이지에서는 3개 영역을 각각 Suspense로 감쌌다.
+
+```tsx
+// NewsRoom/index.tsx
+function NewsRoomPage() {
+  return (
+    <>
+      <Title>뉴스룸</Title>
+      <Suspense fallback={<CarouselSkeletonList />}>
+        <MainDisplayCarousel />
+      </Suspense>
+      <NewsArticleList />
+      <ScrollTopButton />
+    </>
+  );
+}
+```
+
+```tsx
+// NewsRoom/NewsArticleList.tsx
+const NewsArticleList = () => {
+  const [category, setCategory] = useState<number>(0);
+  const [section, setSection] = useState<'latest' | 'popularity'>('latest');
+
+  return (
+    <ContentContainer>
+      <MemoizedSwitchSectionBtns section={section} handleClick={handleSectionChange} />
+      <Suspense fallback={<FakeCategoryButtonList />}>
+        <MemoizedCategoryList selected={category} handleClick={handleCategoryChange} />
+      </Suspense>
+      <Suspense fallback={<FakeNewsArticleList />}>
+        <ArticleListContainer section={section} category={category} />
+      </Suspense>
+    </ContentContainer>
+  );
+};
+```
+
+캐러셀, 카테고리 버튼, 기사 리스트 — 세 영역이 각각 독립적으로 데이터를 가져오고, 각자의 스켈레톤을 보여준다. 하나가 빨리 로드되면 먼저 보이고, 나머지는 각자 스켈레톤을 유지한다.
+
+## Suspense를 쓰려면 useQuery에 suspense 옵션을 켜야 한다
+
+Suspense가 비동기 작업을 감지하려면, 내부 컴포넌트의 `useQuery`에 `suspense: true` 옵션을 줘야 한다. (V5에서는 `useSuspenseQuery`로 대체됐다.)
+
+```tsx
+// NewsRoom/MainDisplayCarousel.tsx
+const { data: articleList } = useQuery(GET_ARTICLES_LIST_MAIN, () => getArticlesMain(), {
+  refetchInterval: 60 * 1000,
+  suspense: true,
+});
+```
+
+```tsx
+// NewsRoom/ArticleListContainer.tsx
+const { data, fetchNextPage, hasNextPage, isFetching, refetch } = useInfiniteQuery(
+  [GET_ARTICLES_LIST, LIMIT, section, category],
+  ({ pageParam }) =>
+    getArticlesList({
+      limit: LIMIT,
+      section,
+      lastId: pageParam?.lastId,
+      categoryId: category,
+    }),
+  {
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length === LIMIT) {
+        return { lastId: lastPage?.[LIMIT - 1]?.id };
+      }
+    },
+    refetchInterval: section === 'popularity' ? REFETCH_INTERVAL_POPULARITY : undefined,
+    useErrorBoundary: true,
+    suspense: true,
+  }
+);
+```
+
+기존에는 이 데이터 fetching 로직이 `NewsArticleList` 컴포넌트 안에 직접 있었다. Suspense를 적용하면서 `ArticleListContainer`라는 별도 컴포넌트로 분리했다. Suspense는 children 컴포넌트 내부의 비동기 작업을 감지하는 구조이기 때문에, fetching 로직이 Suspense 바깥에 있으면 동작하지 않는다.
+
+## 스켈레톤 UI 구현
+
+스켈레톤은 실제 화면의 레이아웃을 회색 도형으로 본뜨고, 반짝이는 애니메이션을 입힌다. `keyframes`로 gradient가 좌에서 우로 흐르는 효과를 준다.
+
+```tsx
+// skeleton/CarouselSkeletonList.tsx
+const TextLoading = keyframes`
+  0% { transform: translateX(0); }
+  50%, 100% { transform: translateX(120px); }
+`;
+
+const FakeText = styled.p`
+  overflow: hidden;
+  position: relative;
+  width: 122px;
+  height: 16px;
+  border-radius: 6px;
+  background: var(--field-fld-02, #f6f7fa);
+`;
+
+const LeftSide = styled.div`
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  ::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 100%;
+    background: linear-gradient(to right, var(--field-fld-03), var(--field-fld-04), var(--field-fld-03));
+    animation: ${TextLoading} 1s infinite linear;
+  }
+`;
+```
+
+각 영역별로 스켈레톤 컴포넌트를 만들었다. 아이템 개수 같은 상수는 `common.ts`에 모아뒀다.
+
+```ts
+// skeleton/common.ts
+export const generateEmptyArray = (length: number) => {
+  return Array.from({ length }, (_, index) => index + 1);
+};
+
+export const NEWS_ROOM_CAROUSEL_ITEM_COUNT = 4;
+export const NEWS_ROOM_CATEGORY_BUTTON_COUNT = 3;
+export const NEWS_ROOM_ARTICLE_ITEM_COUNT = 8;
+```
+
+## 적용 결과
+
+![CLS문제로-스켈레톤을-도입해보자-뉴스룸(feat-Suspense)-02.png](/blog/images/20240308-202403-cls-skeleton-suspense-newsroom-01.png)
+
+![CLS문제로-스켈레톤을-도입해보자-뉴스룸(feat-Suspense)-03.png](/blog/images/20240308-202403-cls-skeleton-suspense-newsroom-02.png)
+
+web.dev 기준으로 CLS 점수가 0.1 미만이면 좋은 사용자 경험이라고 본다.
+
+팀원들에게 공유했을 때 긍정적인 피드백을 받았다.
+
+![CLS문제로-스켈레톤을-도입해보자-뉴스룸(feat-Suspense)-04.png](/blog/images/20240308-202403-cls-skeleton-suspense-newsroom-03.png)
+
+## 남은 고민
+
+스켈레톤을 그려주기 위해 React Suspense를 사용했다. 현재는 뉴스룸 페이지에만 적용했는데, 모든 페이지에 스켈레톤을 넣으면 좋겠지만 현실적인 문제가 있다. 스켈레톤 UI를 만드는 것 자체가 공수이고, 실제 UI가 수정되면 스켈레톤도 같이 수정해야 한다. 유지보수 포인트가 두 배가 되는 셈이다.
+
+코인니스 서비스에는 CLS 문제가 심각한 페이지들이 여러 개 있다. 심각한 순서로 우선순위를 매겨서 점진적으로 적용해 나가야 할지, 아니면 범용적인 스켈레톤 생성 방식을 먼저 고민해야 할지 — 그게 다음 과제다.
+
+그리고 하나 배운 게 있다. Suspense로 감싼 컴포넌트 내부에 데이터 fetching 로직이 있어야 한다는 점을 팀원들과 충분히 공유하지 못했다. 나중에 팀원분이 카테고리를 fetch하는 `useQuery`를 Suspense 바깥으로 빼시면서 의도한 스켈레톤 순서가 깨진 적이 있다. Suspense의 동작 원리를 팀 전체가 이해하고 있어야, 이런 구조가 유지된다.

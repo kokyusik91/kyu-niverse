@@ -1,0 +1,262 @@
+---
+title: "neo-brutal-ui 디자인 키트 개발기 \U0001F914"
+date: '2026-03-03'
+tags:
+  - react
+  - ui-library
+  - radix-ui
+  - cva
+category: dev
+summary: Radix UI + CVA 기반 네오 브루탈리즘 디자인 키트 개발 및 GitHub Packages 배포 과정 정리
+thumbnail: "\U0001F3A8"
+published: true
+---
+![neo-brutalism.jpg](/blog/images/20260303-neo-brutal-ui-design-kit.jpg)
+## 개요
+
+3개 서비스에서 재사용할 네오 브루탈리즘 디자인 키트를 만들었다. Radix UI headless 프리미티브 위에 네오 브루탈리즘 스타일링을 입히고, CVA로 variant를 관리하는 구조.
+
+## 기술 스택
+
+| 역할 | 기술 |
+|------|------|
+| 프레임워크 | React 18 + TypeScript |
+| 스타일링 | Tailwind CSS 3 + 커스텀 프리셋 |
+| Headless UI | Radix UI (Select, Dialog, Tooltip, Toast, Toggle, Checkbox, Radio, Avatar) |
+| Variant 관리 | CVA (class-variance-authority) + clsx + tailwind-merge |
+| 빌드 | tsup (ESM/CJS 듀얼 빌드 + DTS) |
+| 테스트 | Vitest + Testing Library |
+| 문서 | Storybook 8 |
+| 배포 | GitHub Packages + GitHub Actions |
+
+## 프로젝트 구조
+
+```
+src/
+├── lib/
+│   ├── cn.ts             # clsx + tailwind-merge 유틸
+│   └── types.ts          # 공유 타입 (Size, Color, Variant)
+├── preset.ts             # Tailwind 프리셋 (디자인 토큰)
+├── components/
+│   ├── primitives/       # Button, IconButton, Badge, Input, Textarea
+│   │                     # Avatar, Toggle, Checkbox, Radio, Select (Radix)
+│   ├── layout/           # Card, Container, Divider
+│   ├── feedback/         # Dialog, Tooltip, Toast (Radix)
+│   ├── data-display/     # List, Table
+│   └── composite/        # PricingCard, LoginCard, SocialPost 등 10개
+└── index.ts              # Barrel export
+```
+
+총 **28개 컴포넌트**.
+
+## 핵심 패턴
+
+### 1. cn() 유틸리티
+
+```ts
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
+
+`clsx`로 조건부 클래스 합치고, `twMerge`로 Tailwind 충돌 해결.
+
+### 2. CVA로 Variant 관리
+
+```tsx
+const buttonVariants = cva(
+  ["font-nb font-semibold border-nb border-nb-border rounded-nb", ...],
+  {
+    variants: {
+      variant: { filled: "", outline: "bg-transparent", ghost: "..." },
+      color: { primary: "", secondary: "", ... },
+      size: { sm: "h-8 px-3 text-sm", md: "h-10 px-4", lg: "h-12 px-6" },
+      shadow: { none: "shadow-none", sm: "shadow-nb-sm", md: "shadow-nb-md" },
+    },
+    compoundVariants: [
+      { variant: "filled", color: "primary", className: "bg-nb-primary" },
+      ...
+    ],
+    defaultVariants: { variant: "filled", color: "primary", size: "md", shadow: "md" },
+  }
+);
+```
+
+타입 안전하게 variant 조합 가능. `compoundVariants`로 variant 간 조합 스타일 정의.
+
+### 3. Tailwind 프리셋으로 디자인 토큰 배포
+
+```ts
+// preset.ts — 사용자가 이것만 import하면 디자인 토큰 전부 적용
+export const neoBrutalPreset: Config = {
+  content: [],
+  theme: {
+    extend: {
+      colors: { nb: { primary: "#FF6B6B", secondary: "#4ECDC4", ... } },
+      borderWidth: { nb: "3px" },
+      boxShadow: { "nb-md": "4px 4px 0px 0px #1A1A2E" },
+      borderRadius: { nb: "12px" },
+      fontFamily: { nb: ["Space Grotesk", "system-ui", "sans-serif"] },
+    },
+  },
+};
+```
+
+### 4. Radix 컴포넌트 래핑 패턴
+
+```tsx
+// Radix headless에 네오 브루탈 스타일만 입히는 구조
+export const DialogContent = React.forwardRef<...>(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "font-nb text-nb-text bg-nb-surface",
+        "border-nb border-nb-border rounded-nb shadow-nb-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </DialogPrimitive.Content>
+  </DialogPortal>
+));
+```
+
+## 네오 브루탈리즘 디자인 토큰
+
+| 토큰 | 값 |
+|------|-----|
+| Border | `3px solid #1A1A2E` |
+| Shadow (md) | `4px 4px 0px 0px #1A1A2E` |
+| Radius | `12px` |
+| Font | Space Grotesk |
+| Active 효과 | `translate(2px, 2px)` + shadow 제거 |
+
+## 빌드 설정 (tsup)
+
+```ts
+export default defineConfig({
+  entry: ["src/index.ts", "src/preset.ts"],  // 2개 엔트리포인트
+  format: ["esm", "cjs"],                    // 듀얼 포맷
+  dts: true,                                 // 타입 선언 자동 생성
+  external: ["react", "react-dom", "tailwindcss"],
+  treeshake: true,
+  splitting: true,
+});
+```
+
+`preset.ts`를 별도 엔트리포인트로 분리해서 `@kokyusik91/neo-brutal-ui/preset`으로 import 가능하게 함.
+
+## GitHub Packages 배포
+
+### 설정 파일
+
+```json
+// package.json
+{
+  "name": "@kokyusik91/neo-brutal-ui",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
+```
+
+```
+# .npmrc
+@kokyusik91:registry=https://npm.pkg.github.com
+```
+
+### CI/CD (GitHub Actions)
+
+Release 생성 시 자동 배포:
+
+```yaml
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    steps:
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+      - run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### 배포 명령어
+
+```bash
+pnpm version patch          # 버전 업 + 커밋 + 태그
+git push --follow-tags      # 태그 포함 푸시
+gh release create v0.1.1    # Release 생성 → 자동 배포
+```
+
+## 사용자 측 설정
+
+```bash
+pnpm add @kokyusik91/neo-brutal-ui
+```
+
+```ts
+// tailwind.config.ts
+import { neoBrutalPreset } from "@kokyusik91/neo-brutal-ui/preset";
+
+export default {
+  content: [
+    "./src/**/*.{ts,tsx}",
+    "./node_modules/@kokyusik91/neo-brutal-ui/dist/**/*.js",  // 필수!
+  ],
+  presets: [neoBrutalPreset],
+};
+```
+
+## 삽질 기록
+
+### React 복사본 충돌 (link 설치 시)
+
+로컬에서 `link:`로 설치하면 라이브러리의 `node_modules/react`가 같이 딸려와서 React가 2개 로드됨.
+
+**에러**: `Invalid hook call. Hooks can only be called inside of the body of a function component.`
+
+**해결**: Vite `resolve.alias`로 항상 소비자 프로젝트의 React만 쓰도록 강제:
+
+```ts
+// vite.config.ts
+resolve: {
+  dedupe: ['react', 'react-dom'],
+  alias: {
+    react: path.resolve('./node_modules/react'),
+    'react-dom': path.resolve('./node_modules/react-dom'),
+  },
+}
+```
+
+> GitHub Packages에서 정식 설치하면 peerDependencies로 처리돼서 이 문제 발생 안 함.
+
+### CSS @import 순서
+
+`@import`는 `@tailwind` 지시어보다 **앞에** 와야 함. 안 그러면 Vite에서 경고 발생.
+
+```css
+/* 올바른 순서 */
+@import url("https://fonts.googleapis.com/...");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+### DTS 빌드 타입 에러
+
+`List` 컴포넌트에서 `ordered` prop에 따라 `ol`/`ul` 전환 시, `forwardRef` 제네릭을 `HTMLUListElement`로 고정하면 `ol`일 때 타입 에러. `HTMLElement`로 변경해서 해결.
+
+## 리포지토리
+
+- GitHub: https://github.com/kokyusik91/neo-brutal-ui

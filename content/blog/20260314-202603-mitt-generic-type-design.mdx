@@ -1,0 +1,210 @@
+---
+title: mitt를 까보며 배운 제네릭 타입 설계법 — 안에서 밖으로 쌓아올리기
+date: '2026-03-14'
+tags:
+  - frontend
+  - typescript
+category: dev
+summary: 200바이트짜리 이벤트 이미터 mitt의 타입을 직접 따라 만들며 제네릭 설계의 감을 잡은 이야기
+thumbnail: ''
+published: true
+---
+
+## 왜 mitt를 까봤나
+
+TypeScript로 코드를 작성하다 보면 제네릭을 쓸 일이 많다. 근데 남이 만든 제네릭은 읽을 수 있어도, 막상 처음부터 설계하려면 막막하다. "어디서부터 시작해야 하지?"라는 감이 안 잡히는 거다.
+
+그래서 실제 라이브러리의 타입 설계를 뜯어보기로 했다. 대상은 mitt. gzip 기준 200바이트밖에 안 되는 이벤트 이미터인데, 코드가 124줄이라 전체를 한눈에 볼 수 있으면서도 제네릭 설계가 꽤 탄탄하다. 읽는 것에서 그치지 않고, 직접 따라 만들어보면서 내 생각과 mitt의 설계를 비교해봤다.
+
+## 핵심 구조부터 파악하기
+
+mitt는 결국 이런 구조다.
+
+- **하나의 Map** — 이벤트 이름을 키로, 핸들러 배열을 값으로 저장
+- **세 가지 메서드** — `on`(등록), `off`(해제), `emit`(실행)
+- **팩토리 함수** — `mitt()`를 호출하면 위 구조가 담긴 객체를 반환
+
+간단하다. Map에 함수를 넣고, 꺼내서 실행하는 게 전부다. 근데 여기에 타입을 입히기 시작하면 이야기가 달라진다.
+
+## 안에서 밖으로 — 제네릭 설계의 순서
+
+제네릭 타입 설계는 **가장 안쪽부터 시작해서 밖으로 확장**하는 게 핵심이다. mitt의 타입도 이 순서를 따른다.
+
+### 1단계: Handler — "실행할 함수는 어떤 모양인가?"
+
+가장 먼저 정의해야 할 건 핸들러 함수의 타입이다.
+
+```typescript
+type Handler<T = unknown> = (event: T) => void;
+```
+
+이벤트를 받아서 뭔가 하는 함수. 근데 이벤트 타입이 `'click'`이면 `MouseEvent`를, `'message'`면 `string`을 받아야 한다. 그래서 `T`라는 제네릭 파라미터로 빼둔 거다.
+
+제네릭이 결국 뭐냐면, **"변하는 부분을 변수로 만드는 것"**이다. 값의 변수가 아니라 타입의 변수일 뿐이다.
+
+### 2단계: EventHandlerList — "핸들러를 어떻게 모을 것인가?"
+
+하나의 이벤트에 여러 핸들러를 등록할 수 있으니까, 배열로 묶는다.
+
+```typescript
+type EventHandlerList<T = unknown> = Handler<T>[];
+```
+
+이건 단순하다. `Handler`를 배열로 감싼 것뿐이다.
+
+### 3단계: EventHandlerMap — "여러 이벤트를 어떻게 관리할 것인가?"
+
+여기서부터 좀 복잡해진다. Map의 키는 이벤트 이름이고, 값은 핸들러 배열인데 — 각 키마다 핸들러가 받는 타입이 다르다.
+
+```typescript
+type EventHandlerMap<Events extends Record<EventType, unknown>> = Map<
+    keyof Events,
+    EventHandlerList<Events[keyof Events]>
+>;
+```
+
+`Events`라는 제네릭이 처음 등장한다. 이건 사용자가 정의하는 "이벤트 이름 → 데이터 타입" 매핑이다.
+
+```typescript
+type MyEvents = {
+    'click': MouseEvent;
+    'message': string;
+    'error': Error;
+};
+```
+
+이렇게 정의하면 Map의 키는 `'click' | 'message' | 'error'`가 되고, 값은 `Handler<MouseEvent | string | Error>[]`가 된다.
+
+### 4단계: Emitter — "API는 어떤 모양인가?"
+
+마지막으로 사용자가 실제로 쓰는 인터페이스를 정의한다.
+
+```typescript
+interface Emitter<Events extends Record<EventType, unknown>> {
+    all: EventHandlerMap<Events>;
+    on<Key extends keyof Events>(type: Key, handler: Handler<Events[Key]>): void;
+    emit<Key extends keyof Events>(type: Key, event: Events[Key]): void;
+}
+```
+
+여기서 `on` 메서드의 제네릭 `Key`가 핵심이다. 사용자가 `'click'`을 넣으면 TypeScript가 `Key`를 `'click'`으로 추론하고, `handler`의 타입이 자동으로 `Handler<MouseEvent>`가 된다.
+
+```typescript
+emitter.on('click', (event) => {
+    // event는 MouseEvent로 자동 추론!
+    event.clientX; // OK
+});
+```
+
+이 흐름을 역으로 추적하면:
+1. `'click'`이 `Key` 타입으로 들어감
+2. `Key extends keyof Events` → `'click'`은 `Events`의 키 중 하나
+3. `handler: Handler<Events[Key]>` → `Handler<Events['click']>` → `Handler<MouseEvent>`
+
+안에서부터 바깥으로 쌓아올린 제네릭들이 최종적으로 여기서 만나는 거다.
+
+## 직접 만들어보니 달랐던 것들
+
+mitt의 구조를 파악하고 나서 직접 따라 만들어봤다. 이 과정에서 mitt와 내 생각이 달랐던 지점들이 있었다.
+
+### on 메서드: 객체로 받을까, 인자로 받을까?
+
+처음에 on 메서드를 설계할 때, 나는 이렇게 쓰고 싶었다.
+
+```typescript
+mitt.on({
+    '모니모니': (data) => console.log('굉장히 많은 데이터가 출력됨'),
+    'event-key': (data) => console.log(`${data} 데이터 출력`)
+});
+```
+
+여러 이벤트를 한 번에 등록할 수 있으니까 편할 것 같았다. 하지만 mitt는 이벤트 하나씩 등록하는 방식을 택했다.
+
+```typescript
+mitt.on('모니모니', (data) => console.log('모니모니'));
+mitt.on('event-key', (data) => console.log(data));
+```
+
+결과적으로 mitt의 선택이 맞다고 느꼈다. 객체로 받으면 타입 추론이 복잡해지고, 번들 크기도 커진다. 200바이트를 목표로 하는 라이브러리에서 순회 로직을 추가하는 건 사치다.
+
+### off 메서드: 통째로 지울까, 하나만 뺄까?
+
+내가 처음 만든 `off`는 이랬다.
+
+```typescript
+off: (key: string) => {
+    if (!all.get(key)) return;
+    all.delete(key);  // 해당 이벤트의 핸들러를 전부 삭제
+}
+```
+
+키에 연결된 핸들러를 통째로 날리는 방식이다. mitt는 다르다.
+
+```typescript
+off<Key extends keyof Events>(type: Key, handler?: GenericEventHandler) {
+    const handlers = all!.get(type);
+    if (handlers) {
+        if (handler) {
+            handlers.splice(handlers.indexOf(handler) >>> 0, 1);
+        } else {
+            all!.set(type, []);
+        }
+    }
+}
+```
+
+mitt는 **특정 핸들러만 골라서 제거**할 수 있다. `handler`를 안 넘기면 빈 배열로 초기화하는데, `all.delete(type)`이 아니라 `all.set(type, [])`을 쓴다. 키 자체를 없애는 게 아니라 빈 배열로 남겨두는 거다.
+
+여기서 `>>> 0`이 눈에 띈다. `indexOf`가 핸들러를 못 찾으면 `-1`을 반환하는데, `>>> 0`(unsigned right shift)을 하면 `-1`이 `4294967295`라는 아주 큰 양수가 된다. `splice`에 이 값을 넣으면 배열 범위 밖이라 아무 것도 안 지워진다. 즉, 못 찾아도 에러 없이 조용히 넘어가는 방어 코드다. 조건문 하나 안 쓰고 이걸 처리하는 게 인상적이었다.
+
+### 타입 캐스팅: 왜 피할 수 없는가
+
+직접 만들면서 가장 찜찜했던 부분이 `as` 타입 단언이다.
+
+```typescript
+all.set(type, [handler] as EventHandlerList<Events[keyof Events]>);
+```
+
+`on` 메서드 안에서 `handler`는 `Handler<Events[Key]>` 타입이다. 예를 들어 `Handler<MouseEvent>`. 그런데 Map의 value 타입은 `EventHandlerList<Events[keyof Events]>`, 즉 `Handler<MouseEvent | string | Error>[]`다.
+
+TypeScript 입장에서 `Handler<MouseEvent>[]`를 `Handler<MouseEvent | string | Error>[]`에 넣는 건 위험하다고 본다. 하지만 런타임에서는 `'click'` 키에 `MouseEvent` 핸들러만 들어가니까 실제로는 안전하다. Map 자체가 "모든 키의 value를 하나의 union 타입으로 표현"하는 구조적 한계가 있어서, 여기서 `as`는 불가피하다.
+
+mitt도 이걸 알고 있어서 내부에 `GenericEventHandler`라는 로컬 타입을 만들어 캐스팅을 한 곳에서 관리한다.
+
+```typescript
+type GenericEventHandler =
+    | Handler<Events[keyof Events]>
+    | WildcardHandler<Events>;
+```
+
+나는 이 타입 없이 매번 직접 캐스팅했는데, mitt처럼 별칭을 만들어두는 게 의도가 더 명확하게 드러난다.
+
+### emit의 .slice() — 왜 복사본을 돌리나?
+
+emit 구현에서 mitt와 나 모두 `.slice().map()`을 쓴다.
+
+```typescript
+(handlers as EventHandlerList<Events[keyof Events]>)
+    .slice()
+    .map((handler) => handler(evt!));
+```
+
+`.slice()`는 배열을 복사한다. 왜 굳이? 핸들러 안에서 `off`를 호출해서 자기 자신을 제거하는 경우가 있기 때문이다. 원본 배열을 순회하면서 중간에 요소가 빠지면 인덱스가 꼬인다. 복사본을 돌리면 이 문제가 없다.
+
+그리고 `forEach`가 아니라 `map`을 쓴 이유가 재밌다. `map`이 `forEach`보다 1바이트 짧다. 반환값을 안 쓰더라도 핸들러 실행이 목적이니까 상관없고, 1바이트라도 줄이겠다는 집착이 200바이트 라이브러리답다.
+
+## 제네릭 설계할 때 써먹을 수 있는 것들
+
+mitt를 따라 만들면서 정리한, 제네릭 설계 시 실제로 도움이 되는 접근법들이다.
+
+**구체적인 케이스부터 시작하기.** 처음부터 `Handler<T>`를 쓰려고 하지 말고, 먼저 `(event: MouseEvent) => void`, `(event: string) => void`처럼 구체적으로 써본다. 반복되는 패턴이 보이면 그때 제네릭으로 빼면 된다.
+
+**타입 추론 흐름을 역으로 따라가기.** 사용자가 `emitter.on('click', (event) => ...)`을 썼을 때 `event`가 `MouseEvent`로 추론되려면 어떤 제네릭 체인이 필요한지 거꾸로 추적해보면 설계가 잡힌다.
+
+**`extends`는 "이런 형태여야 한다"는 제약이다.** `Events extends Record<EventType, unknown>`은 "Events는 문자열이나 심볼 키에 아무 값이나 매핑하는 객체여야 한다"는 뜻이다. 이걸 이해하면 제네릭 제약조건이 무섭지 않다.
+
+## 마무리
+
+솔직히 제네릭이 처음 등장했을 때, 왜 `<T>`를 쓰는지는 알겠는데 직접 설계하는 건 다른 차원의 문제였다. mitt를 따라 만들면서 느낀 건, **안에서 밖으로** 접근하면 생각보다 자연스럽게 풀린다는 거다. 가장 작은 단위(Handler)를 먼저 정의하고, 그걸 모으고(List), 그걸 관리하고(Map), 마지막에 API로 감싸는 흐름.
+
+그리고 내 설계와 mitt의 설계를 비교해보니, 작은 결정 하나하나에 이유가 있었다. `off`에서 키를 삭제하는 대신 빈 배열을 남겨두는 것, `>>> 0`으로 조건문 없이 방어하는 것, `map`을 `forEach` 대신 쓰는 것까지. 200바이트라는 제약이 오히려 모든 선택을 날카롭게 만든 것 같다.

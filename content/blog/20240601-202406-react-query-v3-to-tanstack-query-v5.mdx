@@ -1,0 +1,220 @@
+---
+title: React Query V3에서 TanStack Query V5로 — 203건의 코드를 바꾸며 배운 것
+date: '2024-06-01'
+tags:
+  - frontend
+  - refactoring
+category: dev
+summary: 프로덕션 서비스에서 React Query V3을 TanStack Query V5로 마이그레이션한 과정과 주요 변경점 정리
+thumbnail: ''
+published: true
+---
+
+## 메이저 버전 2개를 뛰어넘어야 했다
+
+코인니스에서는 React Query V3을 쓰고 있었다. 최신 버전이 V5인데 무려 메이저 2개 차이. 컨셉은 같지만 사용법, deprecated된 API, 새 기능이 대거 바뀌어 있었다.
+
+업데이트를 하고 싶었던 진짜 이유는 Suspense와 ErrorBoundary 때문이었다. V3에도 `useQuery`의 `suspense: true` 옵션이 있긴 했다. 하지만 V3 출시 당시 React Suspense는 실험적 단계였고, V4~V5를 거치면서 Suspense 사용에 최적화되도록 구조가 바뀌었다. `useSuspenseQuery`라는 전용 훅이 생겼고, 데이터가 항상 `undefined`가 아닌 유효한 상태를 보장해준다.
+
+여기에 더해, V5에서는 `useQuery`의 `onSuccess`와 `onError` 콜백이 삭제됐다. 이건 TanStack Query 팀이 "쿼리별로 에러를 처리하지 말고, ErrorBoundary 같은 중앙 집중적 방식을 써라"는 방향성을 제시한 거라고 판단했다.
+
+프로젝트에 Suspense도 ErrorBoundary도 제대로 쓰이지 않고 있었는데, 이 참에 V5로 올리면서 같이 정비하고 싶었다. 팀원들도 동의해줬고, 대규모 업데이트를 시작했다.
+
+## 설치부터가 완전 헬 이었다.
+
+```shell
+yarn remove react-query
+yarn add @tanstack/react-query
+```
+
+패키지 이름 자체가 바뀌었다. `react-query` → `@tanstack/react-query`. import 경로도 전부 바뀐다.
+
+```ts
+// Before
+import { useQuery, useInfiniteQuery } from 'react-query';
+
+// After
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+```
+
+이 시점에서 `yarn dev`를 돌리면 모든 게 에러다. V3 API를 쓰는 코드가 전부 깨지니까. 브라우저에서 디버깅하는 게 불가능할 정도였다. 하나씩 고치면서 에러를 줄여나가는 수밖에 없었다.
+
+## 변경점 1 — 개별 인자에서 객체로
+
+V3에서는 `useQuery`에 인자를 순서대로 넘겼다. V5에서는 전부 객체 형태로 바뀌었다. 가장 많은 수정이 필요했던 부분이다.
+
+```ts
+// V3
+const { data } = useQuery(
+  [...GET_CHART_INFO, originCode],
+  () => getChartInfo(originCode),
+  { enabled: !!originCode }
+);
+
+// V5
+const { data } = useQuery({
+  queryKey: [...GET_CHART_INFO, originCode],
+  queryFn: () => getChartInfo(originCode),
+  enabled: !!originCode,
+});
+```
+
+`useMutation`도 마찬가지. 이 패턴 변경만 137건이었다.
+
+## 변경점 2 — useInfiniteQuery의 initialPageParam
+
+V5에서 `useInfiniteQuery`는 `initialPageParam`을 필수로 요구한다. 여기서 예상 못한 문제가 생겼다.
+
+```ts
+// V3 — initialPageParam 개념 없음, 첫 페이지는 pageParam이 undefined
+const { data } = useInfiniteQuery(
+  GET_GUIDE,
+  ({ pageParam }) => getGuideList({ limit: LIMIT, lastId: pageParam }),
+  { getNextPageParam: (lastPage) => lastPage?.[LIMIT - 1]?.id }
+);
+```
+
+V5에서 `initialPageParam: 0`으로 하면 첫 페이지 요청에 `lastId=0`이 쿼리스트링에 붙는다. 기존에는 첫 페이지에 `lastId` 자체가 안 붙었는데.
+
+`initialPageParam: undefined`로 하면 쿼리스트링에 안 붙긴 하는데, 타입 에러가 난다. `pageParam`이 `undefined`일 수 있다는 걸 명시해줘야 한다.
+
+```ts
+// 해결: pageParam 타입에 undefined 허용
+export type OptionalInitialPageParam = { pageParam?: number };
+
+const { data } = useInfiniteQuery({
+  queryKey: GET_GUIDE,
+  queryFn: ({ pageParam }: OptionalInitialPageParam) =>
+    getGuideList({ limit: LIMIT, lastId: pageParam }),
+  initialPageParam: undefined,
+  getNextPageParam: (lastPage) => lastPage?.[LIMIT - 1]?.id,
+});
+```
+
+더 까다로운 케이스도 있었다. 알람 API는 `currentPage` 기반 페이지네이션인데, `currentPage=0`이면 400 에러가 발생했다. `lastId=0`은 괜찮은데 `currentPage=0`은 안 되는 거다.
+
+```ts
+// currentPage 방식은 undefined일 때 1로 폴백
+const { data } = useInfiniteQuery({
+  queryKey: [GET_ALARM_LIST],
+  queryFn: ({ pageParam }: OptionalInitialPageParam) =>
+    getAlarmListEn({
+      currentPage: pageParam ?? 1,
+      pageSize: LIMIT,
+      languageCode: currLanguage,
+    }),
+  initialPageParam: undefined,
+  getNextPageParam: (lastPage) =>
+    lastPage.currentPage === lastPage.maxPage ? undefined : lastPage.currentPage + 1,
+});
+```
+
+페이지네이션 방식(lastId vs offset vs currentPage)에 따라 `initialPageParam`과 폴백 처리를 다르게 해줘야 했다. 이건 40건.
+
+## 변경점 3 — onSuccess, onError 삭제
+
+개인적으로 가장 충격이었던 변경점. `useQuery`의 `onSuccess`와 `onError` 콜백이 완전히 사라졌다.
+
+```ts
+// V3 — onSuccess로 사이드이펙트 처리
+const { data: chartInfo } = useQuery(
+  [...GET_CHART_INFO, originCode],
+  () => getChartInfo(originCode),
+  {
+    onSuccess: (res) => {
+      addRecentCoin(res.originCode);
+    },
+  }
+);
+
+// V5 — useEffect로 대체
+const { data: chartInfo } = useQuery({
+  queryKey: [...GET_CHART_INFO, originCode],
+  queryFn: () => getChartInfo(originCode),
+});
+
+useEffect(() => {
+  if (chartInfo?.originCode) {
+    addRecentCoin(chartInfo.originCode);
+  }
+}, [chartInfo]);
+```
+
+`onError`도 마찬가지다.
+
+```ts
+// V3
+const { data } = useQuery([...EN_NEWS_DETAIL, id], () => getNewsDetailEn(id), {
+  onError: (err) => {
+    if (axios.isAxiosError(err)) {
+      setErrorMsg(err.response?.data.message);
+      openModal();
+    }
+  },
+});
+
+// V5
+const { data, error } = useQuery({
+  queryKey: [...EN_NEWS_DETAIL, id],
+  queryFn: () => getNewsDetailEn(id),
+});
+
+useEffect(() => {
+  if (error && isAxiosError(error)) {
+    if (error?.response?.data?.statusCode === 404) {
+      addToast('alert', '존재하지 않는 페이지입니다.');
+      navigate('/market/coin', { replace: true });
+    }
+  }
+}, [error]);
+```
+
+솔직히 DX 측면에서는 좀 별로가 된 느낌이다. React Query를 쓰면 `useEffect`를 안 써도 됐었는데, 오히려 `useEffect`가 늘어났다. 근데 TanStack Query 팀의 의도는 이해가 됐다. 쿼리 레벨의 에러 처리보다 ErrorBoundary를 쓰는 게 더 선언적이고, 에러 처리가 산재되지 않는다.
+
+## 변경점 4 — useSuspenseQuery
+
+V3에서 `suspense: true` 옵션을 주던 쿼리는 `useSuspenseQuery`로 바꿔야 한다. 이건 단순 교체가 아니라 동작 방식이 근본적으로 다르다.
+
+`useSuspenseQuery`는 데이터가 항상 유효한 상태(`data: T`, `undefined` 아님)를 보장한다. 에러는 자동으로 상위 ErrorBoundary로 던진다. 그래서 `throwOnError` 옵션이 없다 — 필요가 없으니까.
+
+근데 `enabled` 옵션도 없다. Suspense의 철학이 "데이터가 준비될 때까지 렌더링을 멈추는 것"인데, `enabled: false`로 쿼리를 안 보내면 Suspense가 영원히 풀리지 않기 때문이다. 기존에 `enabled`를 쓰던 곳은 실제로 그 조건이 필요한지 다시 확인해야 했다. 대부분은 기본값이 항상 존재해서 `enabled`를 빼도 되는 경우였다.
+
+## 변경점 5 — keepPreviousData → placeholderData
+
+`keepPreviousData` 옵션도 삭제됐다. `keepPreviousData`란 queryKey가 바뀌어서 새 데이터를 가져오는 동안, 이전 데이터를 계속 보여주는 옵션이다. 탭 전환이나 페이지네이션에서 깜빡임을 방지할 때 썼다. V5에서는 `placeholderData`로 대체한다.
+
+```ts
+// V3
+const { data } = useQuery({
+  queryKey: [...GET_BREAKING_NEWS, 'notice'],
+  queryFn: () => getBreakingNewsNoticesEn(),
+  keepPreviousData: true,
+});
+
+// V5
+const { data } = useQuery({
+  queryKey: [...GET_BREAKING_NEWS, 'notice'],
+  queryFn: () => getBreakingNewsNoticesEn(),
+  placeholderData: (previousData) => previousData,
+});
+```
+
+## 203건의 수정 내역
+
+최종 코드 변경 내역을 정리하면 이렇다.
+
+| 변경 유형 | 건수 |
+|---|---|
+| useQuery, useMutation 객체 형식 변경 | 137건 |
+| useInfiniteQuery 변경 | 40건 |
+| useSuspenseQuery + useSuspenseInfiniteQuery | 20건 |
+| onSuccess 콜백 처리 | 5건 |
+| onError 콜백 처리 | 7건 |
+
+## 이 작업이 남긴 것
+
+203건을 바꾸면서 가장 크게 느낀 건 **추상화 벽의 부재**였다. 컴포넌트 안에 `useQuery`가 직접 선언되어 있으니, React Query의 API가 바뀌면 컴포넌트 코드를 전부 수정해야 한다. 만약 커스텀 훅으로 한 겹 감싸놓았으면, 훅 내부만 바꾸면 됐을 거다.
+
+코드 복사도 마찬가지다. 개발할 때는 빠르지만, 이런 대규모 업데이트에서 수정 포인트가 기하급수적으로 늘어난다. 같은 패턴의 `useInfiniteQuery`가 40군데에 거의 동일하게 있었다.
+
+그리고 이번에 V5로 올리면서 Suspense와 ErrorBoundary를 본격적으로 도입할 기반을 마련했다. `useSuspenseQuery`는 컴포넌트 내부에서 로딩과 에러 상태를 아예 몰라도 되게 해준다. 데이터가 있을 때만 렌더링되니까. 이건 컴포넌트의 관심사를 "UI 렌더링"에 집중시킬 수 있다는 뜻이다.

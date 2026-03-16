@@ -1,0 +1,376 @@
+---
+title: 데이터 베이스 진입 (패스워드를 입력해야함.)
+date: '2024-01-04'
+tags:
+  - homeserver
+  - mysql
+  - express
+  - crawling
+category: dev
+summary: 'MySQL 설치, Express 서버 연결, 네이버 영화 크롤링 및 DB 연동 실습'
+thumbnail: ''
+published: true
+---
+
+## MySQL을 express 서버에 연결해 본다.
+
+프론트엔드 개발자에게 DB 데이터들을 저장해놓고, SQL문을 써서 데이터들을 조회, 추가, 삭제하는 매우 마법같은 공간이다. 처음에 궁금했던것은 DB는 자체적으로 존재하는 것인가? 혹은 서버에서 DB를 직접 띄우는 것일까가 궁금했다. 하지만 MySQL보다 조금 더 친숙했던, MongoDB를 떠올려 보았을때, 자체적으로 MongoDB에 사이트에 접속해 계정을 만들고, 별도의 서버를 띄워서 MongoClient라는 것으로 MongoDB와 통신을 했었다.
+
+그렇다면 **MySQL**도 자체적으로 어떤 MySQL 서버라는것이 있고, 어떤 MySQL 버전의 Client로 해당 MySQL 서버에 아이디와 비밀번호로 로그인하여, 접속할 수 있는게 아닐까??
+
+이번에는 정말 RAW하게 express서버를 띄우고, MySQL을 실행해서, 연결을 하고, 실제 DB에 저장되어있는 테스트 데이터를 콘솔에 출력하는 식으로 진행을 해본다.
+
+이것이 완료된다면, 이 서버를 batch서버로 만들어놓고, DB에 특정 시간에 특정 데이터를 저장하는 것을 만들어본다. 그리고 더 추후에는 express, MySQL을 nest.js, docker, PostgreSQL로 스택을 바꿔 서비스를 만들어 볼 것이다.
+
+---
+
+### 1. Mac에 MySQL 설치
+
+brew를 사용해서, MySQL을 설치한다.
+
+```shell
+brew update
+
+brew install mysql
+```
+
+이렇게 하면 내 서버컴퓨터에 mysql이 설치가 된다. mysql이 설치가 되었는지 확인을 하기 위하여, mysql버전을 체크해 보자!
+
+```shell
+mysql --version
+```
+
+현재 내 컴퓨터 사양은 intel mac이다. 그리고 오늘 기준 mysql 버전을 확인해보면, `Ver 8.2.0` 이 나온다. 자 이제 mysql을 설치했다면, 이 mysql이 어디에 설치되어 있는지 확인을 해야한다. 많은 블로그들에서는 다음과 같은 경로에 깔린다는데, `/usr/local/mysql` 하지만 내 컴퓨터에는 `/usr/local/bin/mysql`에 설치가 되었다.
+
+여기서 중요했던건 mysql도 자체적인 서버이다. 다음 명령어로 `mysql server`를 실행시킬 수 있다.
+
+```shell
+brew service start mysql
+```
+
+![homeserver-mysql-01.png](/blog/images/20240104-homeserver-mysql.png)
+
+mysql이 성공적으로 실행이되면, Successfully started 'mysql' 이라는 문구가 뜬다. 또 확인해 볼수 있는 다른 방법으로는 다음 명령어를 치게 되면,
+
+```shell
+lsof -PiTCP -sTCP:LISTEN
+```
+
+![homeserver-mysql-02.png](/blog/images/20240104-homeserver-mysql-01.png)
+
+기본적으로 현재 `3306` 포트에서 돌고 있는 mysql를 확인할 수있다. (`33060` 포트에서 돌고있는 저 녀석은 무엇이지??)
+
+나는 여기서 이제 mysql을 당장 쓸 수 있을 것이라고 생각했지만, mysql을 쓰기위해서는 로그인을 해야만 한다. 우리가 알고있는 아이디와 패스워드를 최초 등록을 하고, 이제 내 컴퓨터에 내가 직접 mysql을 접속하거나, 혹은 서버를 돌려서 connection을 해야할때 이 아이디와 패스워드를 사용해서 서버와 DB를 connection 할 수 있다. 그러기 위해서는 다음 명령어로 최초 등록을 해야한다. (초기 환경설정 작업)
+
+```shell
+mysql_secure_installation
+```
+
+위의 명령어를 실행하게 되면, CLI에서 다음과 같은 지시문들을 단계 별로 만나게 된다.
+
+```shell
+1. VALIDATE PASSWORD COMPONENT ( 복잡한 비밀번호 여부 ) : n
+2. set the password (비밀번호 설정 & 확인)
+3. Remove anonymous users? (익명 사용자 삭제) : y (n일경우는 mysql 만으로 접속 가능하다)
+4. Disallow root login remotely? (원격 접속 허용하지 않을 것인지) :y(localhost 외 다른 IP에서의 접속을 허용하지 않게 된다.)
+5. Remove test database and access to it? (test DB 삭제 여부) : n(이럴경우 삭제되지 않는다.)
+6) Reload privilege tables now? (변경된 권한을 반영하여 테이블 다시 로드) : y
+```
+
+주의해할게 1번에 비밀번호의 복잡도를 설정하는게 있는데 n을해서 no를 해야하나보다. 나는 yes를해서 복잡도를 middle로 했더니, 정말 복잡한 비밀번호를 따로 만들어서 로그인을 하게 되었다. 공부목적이니, 간단한 비밀번호를 사용하는 것으로 추천한다.
+
+> [!🧠]
+> 꼭 여기서 만들었던, password를 어디에다가 잘 기록해두자. 그리고 ID는 'root'로 만들어 졌을 것이다.
+
+다음으로 할 step은 실제 mysql에 접속을 하는 것이다. 마찬가지로 위에서 만들었던 password를 꼭 기억해두자.
+
+```shell
+mysql -u root -p
+```
+
+다음 명령어를 통해서, mysql에 접속하는 문을 열었고, 최초 만들었던 password를 입력하면, 터미널 창이 이제 mysql 명령어를 칠 수 있는 터미널로 바뀌게 된다. 실제 쿼리등을 여기서 날려볼 수 잇다.
+
+![homeserver-mysql-03.png](/blog/images/20240104-homeserver-mysql-02.png)
+
+맨 마지막에 `mysql>` 이라는 커맨드라인으로 바뀐 것을 볼 수 있다.
+
+간단하게 명령어들을 작성해보자 (명령어를 작성할때 꼭!!!!! 세미콜론을 붙여주자!)
+
+```sql
+SHOW DATABASE;
+```
+
+쿼리를 치게되면, 현재 내가 만든 DB의 데이터베이스라는 카테고리들을 볼 수 있다.
+
+![homeserver-mysql-04.png](/blog/images/20240104-homeserver-mysql-03.png)
+
+못생긴 표가 나오는데 자세히 보면 총 5개의 database 카테고리가 현재 존재하는 것을 볼 수 있다. 여기서 다음 명령어를 치면, 해당 `database` 카테고리로 이동할 수있다.
+
+```sql
+use my_db
+```
+
+데이터베이스를 생성하려면 다음과 같은 명령어를 치면된다.
+
+```sql
+CREATE DATABASE <만들 데이터베이스 이름>
+```
+
+해당 데이터베이스에서 테이블을 만들려고 하면 다음과 같이 예시로 작성하면된다. (아래는 임의의 예시이다.)
+
+```sql
+CREATE TABLE PLAYER (
+playerId     char(7),
+playerName   varchar(20) not null,
+teamId        char(3) not null,
+joinDate     date,
+position varchar(10),
+height float(4),
+weight float(4),
+gender char,
+constraint player_playerId_pk primary key(playerId),
+constraint player_gender_ch   check(gender in ('M', 'F'))
+);
+```
+
+> [!🧠]
+> 많은 옵션들이 있는데 그 중 많이 사용하는 **Null**, **Primary Key**, **Auto_Increment**만 정리하고자 한다.
+
+- **Null** : Column에 Null 이 들어가지 않도록 설정하려면 `Not Null` Option을 추가해준다.
+- **Primary Key** : Table의 기본키를 설정한다.
+- **Auto_Increment** : Type이 정수인 Column의 값을 1 씩 자동으로 증가시켜준다.
+
+위와 같이 테이블을 만들고, 직접 데이터를 insert하는 방법이다.
+
+```sql
+insert into player (playerId, playerName, teamId, JoinDate, position, height, weight, gender)
+  values ('104', "이치명", '324', now(), 'strike', 177, 78, 'M');
+```
+
+DB다루는 방법은 여기까지 간단하게 하고, 이제는 서버를 하나띄우고, mysql을 연결하는 과정을 해본다.
+
+---
+
+### 2. 임의의 서버 만들기
+
+평소에 만드는 것처럼, `express` 서버를 하나 만든다.
+
+```shell
+mkdir batch-server
+
+cd batch-server
+
+npm init -y
+
+npm i express mysql
+```
+
+위의 명령어를 실행한다면, 내 컴퓨터에 `batch-server`라는 이름의 서버가 하나 생성된다. 그리고 express 프레임워크와 mysql 라이브러리를 설치한다. 여기서 설치한 mysql은 실제 mysql이 아니다! 아까 우리가 brew로 설치한 것이 real mysql이고, npm 을 통해 설치한 mysql은 `Node.js와 mysql을 연동하기 위한 모듈`이다.
+
+> [!🧠]
+> 다음 단계를 하기에 앞서, 터미널로 mysql에 접속을해서, 미리 테이블을 만들고, 해당 테이블에 데이터를 insert해 놓자. 추후 서버와 mysql을 연결하고, 서버에서 db에 접근해 데이터를 조회해오는 것을 할 것이다.
+
+```sql
+CREATE DATABASE IF NOT EXISTS my_db;
+
+USE my_db;
+
+CREATE TABLE IF NOT EXISTS Users (
+  id VARCHAR(45) NOT NULL,
+  password VARCHAR(45) NOT NULL,
+  PRIMARY KEY (id));
+
+INSERT INTO Users (id, password) VALUES ('ungmo2', '1234');
+
+SELECT password FROM Users WHERE id='ungmo2';
+```
+
+위와 같이 입력하고 난후에 `User` 테이블을 조회하면, 다음과 같이 못생긴 표에 내가 좀전에 넣은 데이터가 들어가 있는 것을 확인할 수 있다.
+
+![homeserver-mysql-05.png](/blog/images/20240104-homeserver-mysql-04.png)
+
+자 이제 본격적으로 express서버와 mysql을 연결해보자! 그냥 정말 간단하게 `index.js`에 다음과 같은 코드를 작성해보자.
+
+```javascript
+const mysql      = require('mysql');
+const connection = mysql.createConnection({
+  host     : 'localhost',
+  user     : '< MySQL username >',
+  password : '< MySQL password >',
+  database : 'my_db'
+});
+
+connection.connect();
+
+connection.query('SELECT * from Users', (error, rows, fields) => {
+  if (error) throw error;
+  console.log('User info is: ', rows);
+});
+
+connection.end();
+```
+
+위의 코드를 간단하게 설명하자면,
+
+- `mysql` 모듈을 가져온다.
+- mysql 모듈의 `createConnection` 메서드를 통해 객체에 `호스트`, `유저 아이디`, `비밀번호`, `데이터베이스 이름`을 인자로 넘겨 connection이라는 변수에 할당한다.
+- connection의 `connect` 메서드를 사용하여, db에 연결을 한다! => 실제 DB에 연결하는 코드
+- `query` 메서드로 query를 작성한다. => 여기서는 User 테이블을 전체 조회하는 쿼리이다.
+- 첫번째 인자에는 실제 실행할 쿼리
+- 두번째 인자에는 콜백함수가 들어가는데, 콜백함수의 두번째 인자 rows에 데이터가 들어가있는듯하다.
+- 마지막으로 `.end()` 메서드를 통해 DB와의 연결을 끊는다.
+
+서버를 실행시켜보면 다음과 같이 터미널에 출력된 것을 확인 할 수 있다.
+
+![첫 DB 조회](/blog/images/20240104-homeserver-mysql-05.png)
+
+와우! 정말 Low level로 express서버와 mysql을 직접 설치해서 두개의 플랫폼을 연결해 보았다.
+
+> [!🧠]
+> 다음으로 해볼것은 외부 클라이언트에서 요청이 들어왔을때, 이 `express` 서버에서 mysql의 'my_db' db를 조회해서 클라이언트에 응답을 `send`해주는 프로세스를 진행해 보자.
+
+- db 연결을 한다.
+- `/users`로 요청이 들어오면 DB에서 조회후, 조회한 데이터를 클라이언트에 내려줍니다!
+
+나는 다음과 같이 구성을 해보았다. 이번에 express를 하면서 commonjs 모듈 방식으로 파일을 불러오고 내보내고 하는 것들도 같이 해볼 수 있었다. 잠깐만 commonjs 모듈방식의 import와 `exports`를 이야기 해보면 내보내기는 다음과 같이 작성 할 수 있다.
+
+내보내기인 exports는 다음과 같이 작성한다. 변수 exports이다.
+
+```javascript
+const DB_USERNAME = 'root';
+const DB_PASSWORD = 'thisispassword'
+
+exports.DB_USERNAME = DB_USERNAME
+exports.DB_PASSWORD = DB_PASSWORD
+```
+
+위의 내보내기한 변수를 적용후, 객체 자체를 내보내기
+
+```javascript
+const META_DB_INFO = require('../const/db.js')
+
+module.exports = {
+host : 'localhost',
+user : META_DB_INFO.DB_USERNAME,
+password : META_DB_INFO.DB_PASSWORD,
+database : 'my_db'
+}
+```
+
+이야기가 잠깐 샜지만, dbconfig를 외부 모듈에서 관리하고, `index.js`에서 express라우팅 처리와 포트 listen, 그리고 `/users`로 api 요청이 들어왔을때, db에서 조회한 데이터를 내려주는 코드가 작성된다.
+
+> [!📎] 원본 Notion 첨부파일 (마이그레이션 미지원)
+
+위 코드를 실행하게 되면, 외부의 클라이언트에서 해당 서버 엔드포인트 + `/users`로 접근했을때, 유저 정보를 응답받을 수 있는 것을 확인해 볼 수 있다.
+
+express도 서버이고, mysql도 서버이다. 서버에서 query를 통해 데이터를 조회해 오는것이 정말 신세계였다. 다음에 해볼것은 실제 batch 서버를 만들어 보는 것이다. 특정 시간에, 데이터를 크롤링해와서 db에 저장을 하는것을 진행해 보려고 한다.
+
+---
+
+## DB 간단한 명령어
+
+- 데이터 베이스의 명령어는 먼저 `mysql` 서버로 진입해야 사용이 가능하다.
+- 데이터 베이스의 쿼리는 맨 뒤에 세미콜론 `;` 을 붙여줘야만 한다.
+
+```shell
+mysql -u root -p
+```
+
+```shell
+# 새로운 database를 생성
+CREATE DATABASE <데이터베이스 이름>;
+# 현재 연결된 mysql의 database들을 목록으로 보여줌
+SHOW DATABASE;
+# 해당 database로 들어간다. 쿼리등을 날릴 수 있음
+use <데이터베이스 이름>;
+```
+
+- 느낀점은 database에 들어가서 쿼리를 날릴때, syntax에러가 굉장히 많이 났는데 쿼리 문법을 조금 익혀야할 것 같다.
+- 그리고 database에 Table을 만들때(entity들의 타입정의를 해줌) 꼭 터미널에서 한번 해줘야하는건가?? 터미널이 너무 불편해서 syntax error가 계속 발생했다.
+- 실제 데이터를 insert할때는 코드단에서, 쿼리를 직접 날려서 맞는 Table에 데이터를 삽입했다.
+
+> [!💡]
+> 이번에 SQL을 하면서, 간단하게 테이블 전체 데이터 조회, 테이블 생성, 테이블에 데이터 insert하기 정도까지만 진행했다.
+
+---
+
+## 하려는 것
+
+하려는 것은 **batch-server**를 만들고, 해당 서버에서는 주기적으로 영화 목록을 크롤링해와서, MOVIE라는 database의 MOVIE 테이블에 데이터를 insert하게 된다. 그리고 `/movie`로 get요청이 들어오면, MOVIE 테이블의 전체 데이터를 조회해서, 응답으로 내려준다.
+
+---
+
+## 1. 네이버 영화 크롤링 해오는 로직 작성
+
+네이버에 있는 어떤 페이지를 크롤링해서, 해당 데이터를 mysql에 저장하려고 한다. 일단 크롤링하기 위해 필요한 라이브러인 **axios**와 **cheerio**를 사용하려고 한다.
+
+`batch-server`라는 서버 디렉토리를 만들고, npm 패키지인, cheerio와 axios를 다운받는다. cheerio는 제이쿼리 기반 DOM접근으로 데이터를 가져올 수 있다. axios로 네이버 영화 페이지에 요청을 한다음, html을 받아와서 가져올 데이터가 어느 `DOM`에 있는지 파악 후 가져올 수 있게 된다. (이 과정에서 가져올 데이터를 DOM에서 어떤 selector로 가져올지, 부모를 어디로 둘지 파악하는게 어려웠다… 크롤링은 뭔가 많이 해보면 실력이 늘것같다.) 어쨌든 DOM에서 가져온 데이터들을 단일 객체로 묶는다. 여러가지 영화 정보들이 있기 때문에, 반복문으로 배열에 데이터 객체들을 넣어준다.
+
+---
+
+## 2. MOVIE TABLE 생성
+
+터미널에서 mysql로 진입한 다음, MOVIE TABLE을 만들어준다. 이때 어떤 프로퍼티로 구성할건지 잘생각하고, 그 프로퍼티의 타입을 잘 정해준다음 쿼리를 날려 TABLE을 생성하자 => 여기서도 mysql syntax 에러를 많이 경험하긴 했다.
+
+`use MOVIE`를 하면 MOVIE database로 진입하게되고, `SELECT * FROM MOVIE;` 를 했을때 MOVIE 테이블에 저장된 데이터를 한번 조회가능하다. 현재는 아무 데이터도 존재하지 않기 때문에, Empty라고 뜰것이다.
+
+---
+
+## 3. 크롤링한 영화 데이터들을 MOVIE TABLE에 insert
+
+크롤링한 배열안의 객체 데이터를 다시 반복문을 돌리며, 반복문 안에서 데이터베이스에 MOVIE 테이블에 insert하는 쿼리를 작성한다. (이 과정도 mysql syntax 에러가 많이 발생해서 시간을 많이 잡아 먹었다.)
+
+> [!💡]
+> `SELECT * FROM MOVIE;`
+
+위의 명령어를 실행했을때, 영화정보들이 정상적으로 잘 저장이됬다면, 테이블에 데이터가 들어가있는 것을 확인할 수 있을 것이다.
+
+---
+
+## 4. MOVIE TABLE을 조회해서 전체 데이터를 다 응답해주는 조회 api 생성
+
+다음 스텝으로 `batch-server`에 express를 설치하고, `7000` 포트에 Listen을 시킨다음에, `/movies`로 요청이 들어왔을때, 다시한번 `SELECT * FROM MOVIE;` 쿼리를 날려 영화 데이터를 가져온다음 이것을 한번 JSON으로 바꿔준다음 `res.send(data)`로 응답으로 내려준다.
+
+이 api를 클라이언트가 아닌, 메인 api server에서 batch-server로 요청 후, 받아 메인 api-server에서 클라이언트로 내려줄 예정이다. batch-server가 직접적으로 클라이언트와 접촉하는 것을 막기 위함이다.
+
+---
+
+## 5. 클라이언트에서 영화 데이터들을 받고 화면에 렌더링하는 로직
+
+`8080` 포트에 켜져있는 nginx에서 내려주는 정적 파일에 영화정보를 fetch해와서 DOM에 그려주는 로직을 작성하자. (오랜만에 순수 JS로 DOM을 그려주는 작업을 하다보니, 익숙하지 않아 생각보다 시간이 많이 소요.)
+
+---
+
+## 5. 모든 서버들을 키고 연결한다.
+
+위의 플로우를 실행하기위해 켜야될 것은 mysql 서버, batch-server, api-server-1, api-server-2, nginx 총 5개를 실행시켜야한다. (메인 api-server-1, 2에 batch-server로 api 요청하는 로직은 작성된 상태이고, 생략하겠다.)
+
+---
+
+## 6. 내부 망 테스트
+
+그냥 위의 5가지들만 키더라도 내부망에서는 정상적으로 동작할것이다.
+
+---
+
+## 7. 외부 망 테스트
+
+제일 중요한 것은 서버에서 제공한 정적파일일지라도, 정적파일안의 api 요청 엔드포인트는, 내부망 주소가 되면 안된다.
+
+---
+
+## 1월 16일의 문제점
+
+내부 IP 망에서는 정상적으로 `5000`번 서버에 요청해서, 뉴스 크롤링 데이터를 불러오는데, 외부 클라이언트에서 공유기를 통해 접근했을때는 아예 `5000`번 서버로 요청자체가 들어오지 않는다.
+
+---
+
+## 석진상의 조언
+
+> [!💡]
+> 서버 ~ 서버 혹은 서버 ~ DB 연결은 언제나 내부망, 서버 컴퓨터의 내부 IP로 서로 접근가능하다. (내부 IP가 바뀌어 버리면, nginx의 reverse proxy와 서버 ~ 서버간의 요청 엔드포인트도 변경해 줘야한다.)
+
+> [!💡]
+> 클라이언트 ~ 서버 는 **Public IP**로 요청을 해야한다.
+
+- (정말 중요!) 예를들어 클라이언트 입장에서 요청할때, api서버가 있는 같은 서버컴퓨터에서 `nginx`에서 서빙받은 정적파일이라도, 그 정적파일안에 api 요청하는 코드가 있다면, 외부에서 서버컴퓨터로 들어올때 사용하는 **Public IP**로 접근하는 엔드포인트+api서버 포트번호로 api 호출을 해야하고, 이 또한 공유기에서 **Public IP** 의 특정포트로 들어오면, api 요청을 해야하는 특정 서버 포트로 **포트포워딩** 설정을 해줘야한다!
