@@ -19,10 +19,7 @@ import ToggleColorButton from "./components/setting-buttons/ToggleColorButton";
 import DescriptionButton from "./components/setting-buttons/DescriptionButton";
 import DescriptionProvider from "./providers/DescriptionProvider";
 import LinkButton from "./components/setting-buttons/LinkButton";
-import {
-  KYUNIVERSE_GITHUB_URL,
-  KYUNIVERSE_NOTION_URL,
-} from "@/app/constants/external-url";
+import { KYUNIVERSE_GITHUB_URL } from "@/app/constants/external-url";
 
 export default function Home() {
   return (
@@ -30,14 +27,13 @@ export default function Home() {
       <DescriptionProvider>
         <main className="flex min-h-screen flex-col items-center justify-between bg-[url('/universe-full.jpg')] bg-auto bg-origin-content lg:bg-[url('/universe-2.jpg')] lg:p-5 2xl:p-12">
           <header className="flex items-center p-6 lg:p-0">
-            <h1 className="poetsen mr-3 inline-block w-full animate-gradient bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-300% bg-clip-text text-center text-4xl font-extrabold text-transparent lg:text-6xl">
+            <h1 className="poetsen animate-gradient bg-300% mr-3 inline-block w-full bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 bg-clip-text text-center text-4xl font-extrabold text-transparent lg:text-6xl">
               KYU-NIVERSE
             </h1>
             <span className="text-3xl font-extrabold lg:text-5xl">🌍</span>
           </header>
           <nav className="my-3 flex w-full items-center justify-between px-5 lg:p-0">
             <div className="flex items-center gap-6">
-              <LinkButton url={KYUNIVERSE_NOTION_URL} src="notion.svg" />
               <LinkButton url={KYUNIVERSE_GITHUB_URL} src="/github.svg" />
             </div>
             <div className="flex items-center gap-6">
