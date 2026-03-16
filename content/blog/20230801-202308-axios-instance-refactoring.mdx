@@ -1,0 +1,172 @@
+---
+title: 입사 한 달 차에 axios 인스턴스 12개를 3개로 줄인 이야기
+date: '2023-08-01'
+tags:
+  - frontend
+  - refactoring
+category: dev
+summary: 여러 개발자를 거치며 파편화된 axios 인스턴스 12개를 인가 방식 기준 3개로 통합한 리팩토링 과정
+thumbnail: ''
+published: true
+---
+![202308-axios-instance-refactoring-1.png](/blog/images/20230801-202308-axios-instance-refactoring.png)
+
+## api.ts를 열었을 때
+
+입사하고 코드베이스를 처음 훑어보는데, `utils/api.ts` 파일 하나에 axios 인스턴스가 12개 있었다. Feed, Market, Community, User, Login, Live... 서비스마다 인스턴스가 하나씩. 거기에 각 인스턴스마다 `get`, `post`, `put`, `delete` 래퍼 메서드가 중복으로 선언되어 있었다.
+
+```ts
+const MarketClientBase = axios.create({
+  baseURL: baseURL + '/market/v1',
+});
+
+const CommunityClientBase = axios.create({
+  baseURL: baseURL + '/community',
+  headers: headerOptions,
+});
+
+const UserClientBase = axios.create({
+  baseURL: baseURL + '/user/v1',
+});
+
+// ... 이런 게 12개
+```
+
+여러 개발자를 거치면서 각자 자기가 맡은 서비스에 인스턴스를 하나씩 만든 결과였다. interceptor도 인스턴스마다 다르게 붙어 있어서, 어떤 인스턴스는 에러 처리가 있고 어떤 건 없었다. body 스크롤 잠금 처리도 제각각. 한 파일에 이게 다 모여 있으니까 스크롤만 내려도 눈이 아팠다.
+
+## 12개를 뚫어져라 보니 결국 3가지
+
+이걸 정리하고 싶었다. 근데 "어떤 기준으로?"가 문제였다.
+
+서비스별로 나눠져 있으니까 서비스별로 유지해야 하나? 아니었다. 12개 인스턴스를 하나씩 뜯어보니, 결국 다른 건 하나뿐이었다. **인가 방식**.
+
+- 인증 없이 호출하는 API — 시세 조회, 차트 정보 같은 것들
+- 유저 access token이 필요한 API — 구독, 프로필, 댓글 같은 것들
+- 디바이스 토큰이 필요한 API — 로그인, 푸시 등록
+
+baseURL이 서비스마다 다른 건 인스턴스를 나눌 이유가 아니었다. 호출 시 full path를 넣으면 되니까.
+
+## CustomAxios 클래스
+
+핵심은 HTTP 메서드 래퍼를 한 번만 정의하는 것이었다. 12개 인스턴스에 각각 달려 있던 `get`, `post`, `put`, `delete`를 `CustomAxios` 클래스 하나로 뺐다.
+
+```ts
+class CustomAxios {
+  axiosInstance: AxiosInstance;
+
+  constructor(headerConfig?: RawAxiosRequestHeaders) {
+    this.axiosInstance = axios.create({
+      baseURL: process.env.NODE_ENV === 'development' ? '' : process.env.REACT_APP_API_BASE_URL,
+      headers: { ...headerConfig },
+    });
+  }
+
+  async get<T>(url: string, params?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.axiosInstance.get<T>(url, { ...config, params }).then((r) => r.data);
+  }
+
+  async post<T>(url: string, data: any, config?: AxiosRequestConfig) {
+    return this.axiosInstance.post<T>(url, data, { ...config }).then((r) => r.data);
+  }
+
+  async put<T>(url: string, data: any, config?: AxiosRequestConfig) {
+    return this.axiosInstance.put<T>(url, data, { ...config }).then((r) => r.data);
+  }
+
+  async delete<T>(url: string, config?: AxiosRequestConfig) {
+    return this.axiosInstance.delete<T>(url, { ...config }).then((r) => r.data);
+  }
+}
+```
+
+그리고 `AxiosService` 팩토리로 interceptor를 주입하면서 인스턴스를 생성하도록 했다.
+
+```ts
+class AxiosService {
+  private instance: CustomAxios;
+
+  constructor(interceptor: InterceptorHandler, headerConfig?: RawAxiosRequestHeaders) {
+    this.instance = new CustomAxios(headerConfig);
+    interceptor(this.instance.axiosInstance);
+  }
+
+  static createAxiosInstance(interceptor: InterceptorHandler, headerConfig?: RawAxiosRequestHeaders): CustomAxios {
+    return new AxiosService(interceptor, headerConfig).instance;
+  }
+}
+
+export const basicInstance = AxiosService.createAxiosInstance(basicInterceptor);
+export const authInstance = AxiosService.createAxiosInstance(authInterceptor);
+export const deviceInstance = AxiosService.createAxiosInstance(deviceAuthInterceptor);
+```
+
+12개가 3개가 됐다.
+
+## interceptor 분리
+
+기존에는 `api.ts` 안에 interceptor 코드가 인스턴스 선언 사이에 뒤섞여 있었다. 이걸 인가 방식별 디렉토리로 분리했다.
+
+```
+utils/api/
+├── customAxios.ts              # 인스턴스 3개 생성
+├── common.ts                   # 공통 에러/성공 핸들러
+├── basic-interceptor/
+│   ├── index.ts                # interceptor 등록
+│   └── handlers.ts             # request/response 핸들러
+├── auth-interceptor/
+│   ├── index.ts
+│   └── handler.ts              # + 토큰 갱신 로직
+└── device-interceptor/
+    ├── index.ts
+    └── handler.ts
+```
+
+디렉토리 이름만 봐도 어떤 interceptor인지 알 수 있게 됐다. 에러 처리 같은 공통 로직은 `common.ts`로 빼서 세 곳에서 같은 함수를 쓰도록 했다.
+
+```ts
+// common.ts
+export const handleResponseError = async (err: any) => {
+  const { setLoading } = useLoadingStore.getState();
+  setLoading(false);
+
+  if (err.response?.status === 401) {
+    refreshTokenHandler();
+  }
+
+  if (err.response?.status >= 500) {
+    return handleResponeServerError(err);
+  }
+
+  return Promise.reject(err);
+};
+```
+
+## 사용하는 쪽은 거의 안 바뀌게
+
+설계할 때 가장 신경 쓴 건 팀원들의 사용 패턴을 안 깨는 것이었다. 기존에 `MarketClient.get('/tickers/summary')` 형태로 호출하던 걸, `basicInstance.get('/market/v1/tickers/summary')` 형태로 바꾸면 됐다.
+
+```ts
+// Before
+export const getTickerSummary = () =>
+  MarketClient.get<TickerSummary>('/tickers/summary');
+
+// After
+export const getTickerSummary = () =>
+  basicInstance.get<TickerSummary>('/market/v1/tickers/summary');
+```
+
+인스턴스 이름만 바뀌고, URL에 서비스 prefix가 들어간 정도. 호출 패턴 자체는 `.get<T>(url, params)` 그대로라서 마이그레이션 부담이 적었다.
+
+## 입사 한 달 차의 부담
+
+솔직히 부담됐다. 잘 돌아가고 있는 코드를 입사 한 달밖에 안 된 사람이 건드리는 거니까. "혹시 내가 놓친 엣지 케이스가 있으면?" "다시 검증하는 비용이 크면?" 이런 생각이 계속 들었다.
+
+근데 결국 실행한 이유는 단순했다. 지금 안 고치면 13번째, 14번째 인스턴스가 생길 거라는 게 뻔했다. 새로 들어오는 사람이 기존 패턴을 보고 또 하나 만들 테니까.
+
+전면 적용 후 서비스 전체를 돌려보며 API 호출을 확인했고, 문제 없이 마무리됐다. 코드량은 약 70% 줄었다.
+
+## 돌이켜보면
+
+이 작업이 내 판단 기준을 바꿔놨다. "잘 돌아가는 코드를 굳이 건드려야 하나?"에서 "지금 안 고치면 더 비싸진다"로. 물론 아무 때나 리팩토링하자는 얘기는 아니다. 이 케이스는 명확했다. 12개가 결국 3가지라는 근거가 있었고, 사용 패턴 변화도 최소화할 수 있었으니까.
+
+그리고 이때 경험이 이후에 코드 구조를 건드리는 작업들 — 모달 시스템 통합이라든가, 디자인 시스템 도입이라든가 — 을 할 때 자신감의 근거가 됐다. "해봤으니까 할 수 있다"는 가장 강력한 근거다.

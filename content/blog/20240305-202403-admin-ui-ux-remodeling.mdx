@@ -1,0 +1,116 @@
+---
+title: 어드민 UI/UX 너 너무 Old 한 것 같아
+date: '2024-03-05'
+tags:
+  - frontend
+  - UX
+category: dev
+summary: >-
+  3년 된 어드민의 레이아웃, 스타일 시스템, 테이블 컴포넌트를 shadcn-ui + Tailwind + tanstack-table로
+  리모델링한 과정
+thumbnail: ''
+published: true
+---
+
+## 어드민은 대충 해도 되나?
+
+코인니스의 사업팀과 운영팀이 사용하는 어드민의 UI가 너무 오래됐다. HTML 기본 태그 스타일 그대로인 곳이 대부분이었고, 미적으로도 UX적으로도 불편함이 있었다. 보통 개발자들에게 물어보면 "어드민은 대충 해~"라는 말을 듣는다. 이 말이 듣기 싫었다.
+
+물론 어드민보다 실제 서비스가 돈을 벌어오고, 거기에 더 많은 리소스를 투자하는 건 인정한다. 어드민은 디자인팀 지원도 없고, 파워포인트 기획서를 보고 개발자가 알아서 UI를 그려야 하는 구조다. 나도 유저 서비스 코드에 더 고민을 쏟고 있었다.
+
+하지만 어드민이 이 상태로 시간이 흐르면, 사이즈는 점점 커지고 고치기는 더 어려워질 거라고 생각했다. 메인 업무를 가져가면서 사이드로 어드민 리모델링을 진행하기로 했다. 프론트 팀원들을 설득하기 위해 현재 실태와 작업 계획을 브리핑했고, 내 책임하에 진행하게 됐다.
+
+## 스타일이 세 종류로 섞여 있다
+
+기존 어드민의 스타일 상황을 보면 어질어질했다.
+
+- `styled-components`로 만든 UI
+- `MUI`로 만든 UI
+- 그냥 HTML 기본 태그 UI
+
+스타일 작성 방식도 인라인 스타일, styled-components, MUI의 `sx` prop — 세 가지가 혼재되어 있었다. 그리고 단순히 영역 잡기 위해 만들어진 빈 스타일 컴포넌트들도 잔뜩 있었다.
+
+이걸 전부 통일하기 위해 **Tailwind CSS**로 교체하기로 했다. 스타일만을 위한 컴포넌트를 따로 만들 필요 없이, 클래스 하나로 바로 스타일을 줄 수 있으니까.
+
+## shadcn-ui를 선택한 이유
+
+어드민에 쓸 UI를 직접 만들 필요는 없다고 생각했다. MUI, React Bootstrap, Chakra UI, Mantine 등 여러 라이브러리가 있지만, 디자인 색이 너무 짙거나 커스터마이징이 까다로웠다.
+
+shadcn-ui — Radix UI(Headless UI) 기반에 Tailwind로 스타일이 작성된 컴포넌트 모음이다. 기능은 Radix가 다 만들어놨고, CSS는 개발자가 자유롭게 수정할 수 있다. 그리고 결정적으로, 설치하면 `node_modules`가 아니라 **내 프로젝트 디렉토리에 코드가 직접 들어온다.** 수정이 자유롭다. 기본 디자인도 깔끔하고 모던해서 어드민에 딱 맞아 보였다.
+
+## 1차 — 레이아웃 교체
+
+처음부터 전부 바꾸지 않았다. 실제 컨텐츠(테이블 영역)는 건드리지 않고 전체 레이아웃만 먼저 바꿨다.
+
+```tsx
+// Layout.tsx
+function Layout() {
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(true);
+
+  return (
+    <Wrap>
+      <Menu open={isSideMenuOpen} />
+      <ContentWrap open={isSideMenuOpen}>
+        <GlobalHeader handleClickButton={() => setIsSideMenuOpen((prev) => !prev)} isSideMenuOpen={isSideMenuOpen} />
+        <RealContents>
+          <Suspense>
+            <Outlet />
+          </Suspense>
+        </RealContents>
+      </ContentWrap>
+    </Wrap>
+  );
+}
+```
+
+**사이드바 접기/펴기.** 어드민 특성상 데이터가 테이블에 많이 나오는데, 테이블이 잘려서 좌우 스크롤해야 하는 경우가 많았다. 사이드 메뉴를 접으면 컨텐츠 영역이 넓어진다. `transition: all 0.5s ease`로 스르륵 들어가는 트랜지션도 넣었다.
+
+**GNB 추가.** 기존에는 어드민에 GNB가 없었다. 로그인해도 내가 누군지 알 방법이 없었다. GNB에 사용자 정보를 표시하고, 사이드바 토글 버튼과 로그아웃을 배치했다.
+
+```tsx
+// GlobalHeader.tsx
+export default function GlobalHeader({ isSideMenuOpen, handleClickButton }: GlobalHeaderProps) {
+  const { data: mystaffInfo } = useQuery(['mystaff'], getMyStaffInfo);
+
+  return (
+    <header className={`fixed right-0 flex justify-between items-center h-16 bg-white ...`}>
+      <Button onClick={handleClickButton} variant="secondary" size="icon">
+        {isSideMenuOpen ? <ArrowLeftToLine /> : <Menu />}
+      </Button>
+      <div className="flex gap-2 items-center">
+        <Avatar>
+          <AvatarImage src="/assets/img/user-img.webp" />
+        </Avatar>
+        <div>
+          <h1>안녕하세요 <strong>{mystaffInfo?.name}</strong>님!</h1>
+          <p className="text-zinc-400 text-sm">{mystaffInfo?.email}</p>
+        </div>
+      </div>
+    </header>
+  );
+}
+```
+
+레이아웃과 기본 스타일만 바꿨는데, 완전 새로운 앱이 됐다. "어드민 정말 괜찮아졌다"는 피드백을 몇 분에게 들었고, 추가 개선 요청도 받았다. 자잘한 피드백은 바로 반영했다.
+
+## 2차 — 프로젝트 루트 리팩토링
+
+3년 전에 작성된 코드들이 그대로 남아 있었다. 사용하지 않는 코드도 대거 존재했다. `index.tsx`부터 `App.tsx`, `Router.tsx`까지 순서대로 정리했다. 파편화되어 있던 로딩 상태들을 하나의 글로벌 로딩 상태로 추출했다.
+
+![어드민-UI-UX-너-너무-Old-한것-같아-01.png](/blog/images/20240305-202403-admin-ui-ux-remodeling.png)
+
+## 3차 — 테이블 컴포넌트 교체
+
+어드민에서 가장 많이 쓰는 기능은 데이터 검색과 테이블이다. 기존에는 `react-data-table-component`를 사용하고 있었다. 데이터를 보여주는 역할은 잘 했지만, **tanstack-table V8**로 교체하기로 했다. 사용 방식이 비슷하면서 더 많은 기능을 자체 제공하고, TanStack Query를 만든 팀에서 관리하는 라이브러리라 앞으로도 지원이 이어질 거라 판단했다.
+
+![어드민-UI-UX-너-너무-Old-한것-같아-02.png](/blog/images/20240305-202403-admin-ui-ux-remodeling-01.png)
+
+검색 필터도 손봤다. 기존에는 검색 쿼리를 전역 store에서 관리하고 있었는데, 해당 페이지에서만 쓰이는 검색 쿼리를 왜 전역에서 관리하는 건지 납득이 안 갔다. 지역 상태로 충분히 관리할 수 있으면 그게 코드 흐름 파악에도 좋다.
+
+![어드민-UI-UX-너-너무-Old-한것-같아-03.png](/blog/images/20240305-202403-admin-ui-ux-remodeling-02.png)
+
+## 이 작업이 가능했던 이유
+
+메인 업무와 병행하면서 사이드로 진행한 작업이었다. 처음에 팀원들을 설득할 때 현재 실태(스타일 3종 혼재, HTML 기본 UI, GNB 없음)와 작업 계획(레이아웃 → 루트 리팩토링 → 테이블 교체)을 구체적으로 보여준 게 주효했다.
+
+"어드민은 대충 해도 돼"라는 말에 동의하지 않는다. 사업팀, 운영팀, 개발팀 모두 어드민을 매일 쓴다. 그들도 유저다. 분명 레이아웃과 스타일만 바꿨을 뿐인데, 쓰는 사람들의 체감은 확실히 달랐다.

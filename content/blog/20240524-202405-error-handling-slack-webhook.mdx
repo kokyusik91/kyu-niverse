@@ -1,0 +1,182 @@
+---
+title: 코인니스 에러 처리 방식을 개선해보자 — feat. 슬랙 웹훅
+date: '2024-05-24'
+tags:
+  - frontend
+  - architecture
+category: dev
+summary: '프론트엔드 에러를 슬랙 웹훅으로 로깅하고, ErrorBoundary 기반 에러 처리 구조를 정리한 과정'
+thumbnail: ''
+published: true
+---
+
+## 에러 처리가 일관되지 않다
+
+코인니스 프로젝트의 에러 흐름이 일관되지 못하고 있다고 판단했다. API 관련 에러가 대부분인데, 현재 어디서 에러 처리를 하고 있는지 파악해봤다.
+
+- 존재하지 않는 페이지로 진입하면 라우터 단에서 404 페이지로 보낸다
+- 일반 `fetch`를 사용하는 곳에서 `catch`절로 에러 핸들링을 하고 있다
+- `auth` 관련 API들은 React Query를 사용하지 않고 axios 단에서 에러 처리를 한다
+
+에러와 맞닿아 있는 부분을 정리하면 세 곳이다.
+
+1. `App` 최상단의 `ErrorBoundary` 컴포넌트
+2. React Query의 `onError` 콜백
+3. interceptor의 `responseOnError` 콜백 함수
+
+각 interceptor의 에러 처리도 제각각이었다. `basicInstance`는 로딩만 끄고 reject하고, `authInstance`는 401이면 로그아웃시키고, `deviceInstance`는 디바이스 토큰 재발급 후 재요청하는 로직이 있었다.
+
+## 에러를 슬랙 웹훅으로 보내보자
+
+먼저 에러가 발생하면 슬랙으로 알림을 보내는 구조를 만들어봤다. 에러를 인자로 받아서 Error DTO로 변환한 뒤 웹훅 API를 호출하는 함수를 만들었다.
+
+```ts
+export const logUnCautedError = (error: Error, info?: { componentStack: string }) => {
+  const errorDto = {
+    cause: error.cause,
+    name: error.name,
+    message: error.message,
+    stack: info ? info.componentStack : error.stack,
+  };
+  const errorString = JSON.stringify(errorDto);
+  sendErrorByWebhook({ text: errorString });
+};
+```
+
+근데 클라이언트에서 슬랙 웹훅 서버로 직접 요청을 보내니까 CORS 이슈가 발생했다. 이전에 했을 때는 안 그랬는데, 이번에는 막혔다.
+
+### Express 프록시 서버로 CORS 우회
+
+Express로 간단한 프록시 서버를 만들었다. 클라이언트 요청을 그대로 받아서 슬랙 웹훅 서버로 전달해주는 역할만 한다.
+
+```js
+const express = require("express");
+const axios = require("axios");
+const cors = require("cors");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.post("/send-error", async (req, res) => {
+  try {
+    await axios.post(SLACK_WEBHOOK_URL, req.body, {
+      headers: { "Content-Type": "application/json" },
+    });
+    res.status(200).send("Error sent to Slack");
+  } catch (error) {
+    res.status(500).send("Failed to send error to Slack");
+  }
+});
+
+app.listen(3000);
+```
+
+Express 서버에서 모든 도메인을 허용했으므로, 클라이언트는 Express 서버로 요청을 보내면 된다.
+
+![코인니스-에러-처리-방식을-개선해보자-feat-노션-웹훅-01.png](/blog/images/20240524-202405-error-handling-slack-webhook.png)
+
+슬랙에 에러 로그가 찍히기 시작했다.
+
+## 로깅 함수를 어디에 넣어야 하나
+
+에러를 찍는 데 성공했으니, 다음 문제는 이 로깅 함수를 어디서 호출하느냐다. 세 군데를 실험해봤다.
+
+### 1. axios interceptor의 responseOnError
+
+```ts
+export const responseOnError = (error: unknown) => {
+  const { setLoading } = useLoadingStore.getState();
+  setLoading(false);
+
+  if (error instanceof Error) {
+    logUnCautedError(error);
+  }
+  return Promise.reject(error);
+};
+```
+
+### 2. 최상단 ErrorBoundary의 onError
+
+```tsx
+<ErrorBoundary FallbackComponent={GlobalErrorFallback} onError={logUnCautedError}>
+  <JAManageLayout>
+    <SystemCheckContainer>{isGlobalLogoutFinish && <Outlet />}</SystemCheckContainer>
+  </JAManageLayout>
+</ErrorBoundary>
+```
+
+### useErrorBoundary 옵션의 차이
+
+여기서 중요한 발견이 있었다. `useQuery`의 `useErrorBoundary` 옵션을 `true`로 주었을 때와 안 주었을 때의 차이다.
+
+**`useErrorBoundary: false` (또는 미지정)일 때:**
+- ErrorBoundary의 `onError`에서 `info` 파라미터가 안 찍힌다
+- 어디서 에러가 발생했는지 알 수 없다
+
+![코인니스-에러-처리-방식을-개선해보자-feat-노션-웹훅-03.png](/blog/images/20240524-202405-error-handling-slack-webhook-01.png)
+
+**`useErrorBoundary: true`일 때:**
+- `info.componentStack`으로 어느 컴포넌트에서 에러가 터졌는지 알 수 있다
+
+![코인니스-에러-처리-방식을-개선해보자-feat-노션-웹훅-04.png](/blog/images/20240524-202405-error-handling-slack-webhook-02.png)
+
+즉 `useQuery`에서 `onError` 콜백으로 처리하지 않으면 상위로 자동으로 에러가 전파된다. 대신 `useErrorBoundary: true`를 주면 어느 컴포넌트에서 에러가 터졌는지에 대한 정보를 얻을 수 있다.
+
+## 최종 코드
+
+```ts
+export const logUnCautedError = (error: AxiosError | Error, info?: { componentStack: string }) => {
+  if (error instanceof Error) {
+    const errorDto = {
+      cause: error.cause,
+      name: error.name,
+      message: error.message,
+      stack: info ? info.componentStack : error.stack,
+    };
+    sendErrorByWebhook({ text: JSON.stringify(errorDto) });
+  }
+
+  if (error instanceof AxiosError) {
+    const errorData = error.response?.data;
+    const errorDto = {
+      cause: error.cause,
+      name: error.name,
+      message: errorData.message || error.message,
+      stack: info ? info.componentStack : error.stack,
+    };
+    sendErrorByWebhook({ text: JSON.stringify(errorDto) });
+  }
+};
+```
+
+### QueryClient 레벨 에러 핸들링
+
+추가로 `QueryCache`의 `onError`를 활용하면 모든 쿼리 에러를 한 곳에서 잡을 수 있다는 것도 확인했다.
+
+```ts
+function queryCacheOnError(err: DefaultError, query: Query) {
+  console.log('쿼리 클라이언트 에러', err);
+  console.log('쿼리 클라이언트 쿼리', query);
+  console.log('커스텀 에러코드', query.meta);
+}
+
+const koQueryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: queryCacheOnError,
+  }),
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  },
+});
+```
+
+## 여기서 끝이 아니다
+
+에러를 찍고, 어떤 식으로 에러가 던져지는지 파악했다. 어디서 catch해서 로그를 찍을지도 확인했다. 다음에 해야 할 건 두 가지다.
+
+- 어떤 에러를 로깅해야 할지? 모든 에러를 다 보내면 슬랙이 도배될 것이다.
+- 에러를 어떻게 촘촘히 처리해야 할지? interceptor, useQuery, ErrorBoundary 각각의 역할을 명확히 나눠야 한다.

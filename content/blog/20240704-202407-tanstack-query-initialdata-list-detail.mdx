@@ -1,0 +1,102 @@
+---
+title: '리스트에서 상세 페이지로 넘어갈 때, 캐시된 데이터를 먼저 보여주면 어떨까'
+date: '2024-07-04'
+tags:
+  - frontend
+  - react
+category: dev
+summary: TanStack Query의 initialData를 활용해 리스트 → 상세 페이지 전환 시 체감 속도를 개선한 경험
+thumbnail: ''
+published: true
+---
+
+## 클릭하면 빈 화면이 먼저 보인다
+
+에어드롭 미션 리스트에서 카드를 클릭하면 상세 페이지로 이동한다. 그런데 상세 페이지에 들어가면 API 응답이 올 때까지 아무것도 안 보인다. 로딩 스피너가 돌거나, 빈 화면이 잠깐 깜빡인다.
+
+이상한 건, 리스트 페이지에서 이미 그 미션의 이름, 설명, 보상, 프로젝트 정보 같은 데이터를 보고 있었다는 거다. 카드에 나와 있던 정보가 상세 페이지에서도 그대로 쓰이는데, 굳이 API 응답을 기다려야 하나?
+
+이미 가지고 있는 데이터를 먼저 보여주고, 상세 API 응답이 오면 나머지를 채우는 방식이 가능하지 않을까 생각했다.
+
+## TanStack Query의 initialData
+
+TanStack Query(구 React Query)의 `useQuery`에는 `initialData`라는 옵션이 있다. 쿼리가 아직 데이터를 가져오지 않았을 때 사용할 초기 데이터를 지정하는 기능이다. `initialData`가 있으면 API 요청은 백그라운드에서 그대로 나가되, UI는 초기 데이터로 먼저 렌더링된다.
+
+비슷한 옵션으로 `placeholderData`도 있는데, 둘의 차이가 있다. `initialData`는 캐시에 저장되는 "진짜 데이터"로 취급되고, `placeholderData`는 캐시에 저장되지 않는 임시 데이터다. 리스트에서 가져오는 데이터는 실제 서버 데이터이니까, `initialData`가 더 맞다고 판단했다.
+
+## 리스트 캐시에서 꺼내오기
+
+리스트 페이지에서는 `useInfiniteQuery`로 미션 데이터를 가져오고 있었다. 이 데이터는 TanStack Query의 캐시에 queryKey 기준으로 저장돼 있다. 상세 페이지에서 `queryClient.getQueryData()`로 이 캐시를 직접 읽을 수 있다.
+
+```tsx
+const { data: mission } = useQuery({
+  queryKey: commonQueryKeys.airdrop.detail(missionId).queryKey,
+  queryFn: () => getMissonById(missionId, { languageCode: currLanguage }),
+  initialData: () => {
+    // 캐시된 미션 리스트에서 현재 missionId에 해당하는 데이터를 찾는다
+    const missionList = queryClient
+      .getQueryData<InfiniteData<SearchGetAirdropMissionListResDto[]>>(
+        commonQueryKeys.airdrop.missions({
+          limit: 15,
+          languageCode: currLanguage,
+          keyword: '',
+        }).queryKey
+      )
+      ?.pages.flat();
+
+    const missionFromList = missionList?.find((item) => item.id === missionId);
+
+    // 못 찾으면 undefined → initialData 없는 것으로 처리
+    if (!missionFromList) {
+      return undefined;
+    }
+
+    // 리스트 DTO를 상세 DTO로 변환
+    return {
+      ...missionFromList,
+      estimateTime: null,
+      estimateCost: null,
+      contentHtml: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      deletedAt: null,
+    };
+  },
+});
+```
+
+핵심은 세 가지다.
+
+**1. `initialData`를 함수로 넘긴다.** 값이 아니라 함수를 넘기면, 이 쿼리가 실제로 마운트될 때만 실행된다. 리스트 페이지에서는 이 함수가 호출되지 않는다.
+
+**2. 캐시에 없으면 `undefined`를 반환한다.** 직접 URL로 상세 페이지에 들어온 경우, 리스트 캐시가 없으니까 `undefined`가 반환된다. 이러면 TanStack Query가 `initialData`가 없는 것으로 처리하고, 평소처럼 API 응답을 기다린다. 에러가 나지 않는다.
+
+**3. 리스트 DTO와 상세 DTO의 타입이 다르다.** 리스트에는 `contentHtml`, `estimateTime` 같은 필드가 없다. 그래서 상세 DTO 타입에 맞게 빈 값으로 채워주는 변환이 필요하다. 이 부분을 안 하면 타입 에러가 난다.
+
+## 체감의 차이
+
+적용 전에는 리스트 → 상세 페이지 전환 시 빈 화면이 보였다가 데이터가 채워졌다. 2~3초 부분을 보면 차이가 확실하다.
+
+**Before — initialData 없이:**
+
+<video src="/blog/videos/20240704-202407-tanstack-query-initialdata-list-detail.mov" autoPlay loop muted playsInline width="100%" />
+
+**After — initialData 적용:**
+
+<video src="/blog/videos/20240704-202407-tanstack-query-initialdata-list-detail-01.mov" autoPlay loop muted playsInline width="100%" />
+
+적용 후에는 클릭하는 순간 이름, 설명, 보상, 프로젝트 정보가 바로 나온다. 진행 방법(`contentHtml`)이나 예상 시간/비용 같은 상세 전용 데이터만 API 응답 후에 채워진다.
+
+사용자 입장에서는 "클릭했는데 뭔가 바로 보인다"는 느낌이 확실히 다르다. 실제 API 응답 시간은 같지만, 체감 속도가 빨라진다.
+
+## initialData를 쓸 때 주의할 것
+
+이 패턴이 항상 좋은 건 아니다. 몇 가지 신경 쓸 부분이 있다.
+
+**queryKey 의존성.** `getQueryData()`에 넘기는 queryKey가 리스트 쿼리의 queryKey와 정확히 일치해야 한다. 파라미터가 하나라도 다르면 캐시를 못 찾는다. 이 코드에서는 `limit: 15`, `keyword: ''`를 하드코딩하고 있는데, 리스트 쪽 파라미터가 바뀌면 같이 바꿔야 한다. 이건 좀 찜찜한 부분이다.
+
+**stale 데이터.** 리스트를 가져온 시점과 상세 페이지에 진입한 시점 사이에 서버 데이터가 바뀌었을 수 있다. `initialData`는 캐시에 저장되니까, `staleTime` 설정에 따라 background refetch가 안 될 수도 있다. 실시간성이 중요한 데이터면 `placeholderData`가 더 안전하다.
+
+**DTO 변환 유지비용.** 리스트 DTO에 필드가 추가되거나 상세 DTO가 바뀌면, 변환 로직도 같이 업데이트해야 한다. 타입스크립트가 컴파일 타임에 잡아주긴 하지만, 변환 코드가 있다는 걸 잊기 쉽다.
+
+그래도 이 케이스에서는 충분히 쓸 만했다. 리스트와 상세의 공통 데이터가 많았고, 실시간성이 크게 중요하지 않았으니까.

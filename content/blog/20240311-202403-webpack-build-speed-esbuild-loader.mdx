@@ -1,0 +1,98 @@
+---
+title: 코인니스 웹 빌드 속도를 50% 줄인 방법 — babel-loader에서 esbuild-loader로
+date: '2024-03-11'
+tags:
+  - frontend
+category: dev
+summary: CRA 기반 프로젝트에서 번들러를 교체하지 않고 loader만 바꿔서 빌드 속도를 절반으로 줄인 과정
+thumbnail: ''
+published: true
+---
+
+## 빌드가 느린 것 같은데, 얼마나 느린지도 모른다
+
+회사에서는 GitLab CI/CD를 사용해서 빌드 및 배포를 하고 있다. 어느 순간 빌드 시간이 느리지 않나?라는 생각이 들었는데, 그 전에 프로젝트를 빌드하는 데 정확히 얼마나 걸리는지도 모르는 상황이었다. 그냥 느낌이 느리다는 것.
+
+프로젝트는 CRA 기반이니까 Webpack을 번들러로 쓰고 있다. 최근에 Vite나 esbuild 같은 번들러가 더 빠르다는 이야기를 들었다. Vite는 내부에 esbuild를 사용하고, esbuild는 싱글스레드 자바스크립트 기반인 Webpack과 달리 멀티스레드를 지원하는 Go로 만들어져 있다.
+
+하지만 번들러 자체를 교체하는 건 큰 작업이라 좀 막막했다. 그러다가 Webpack은 그대로 쓰면서 loader만 교체해서 빌드 속도를 올릴 수 있다는 글을 읽었다. Webpack의 `babel-loader`를 `esbuild-loader`로 바꾸는 것이다.
+
+## 먼저 측정부터
+
+빌드 시간을 측정하기 위해 `speed-measure-webpack-plugin`을 설치했다. CRA는 기본적으로 webpack config 파일이 숨겨져 있어서 직접 수정할 수 없는데, 회사에서는 `craco`를 사용해서 webpack 커스터마이징을 하고 있었다.
+
+```ts
+const SpeedMeasurePlugin = require('speed-measure-webpack-plugin');
+const smp = new SpeedMeasurePlugin();
+
+module.exports = {
+  webpack: smp.wrap({
+    configure: (webpackConfig, { env, paths }) => {
+      // webpack config...
+    },
+  }),
+};
+```
+
+`npm run build`를 실행하면 각 로더와 플러그인이 빌드할 때 걸리는 시간을 측정해서 보여준다.
+
+```
+SMP  ⏱
+General output time took 11.039 secs
+
+ SMP  ⏱  Loaders
+babel-loader took 3.2 secs
+  module count = 1949
+@svgr/webpack, and
+file-loader took 1.52 secs
+  module count = 138
+mini-css-extract-plugin, and
+css-loader, and
+postcss-loader, and
+resolve-url-loader, and
+sass-loader took 1.33 secs
+  module count = 3
+```
+
+총 빌드 시간 **11초**, `babel-loader`가 **3.2초**로 가장 오래 걸린다. 1949개 모듈을 처리하고 있었다.
+
+## esbuild-loader로 교체
+
+`craco-esbuild` 플러그인을 설치하고 `craco.config.js`에 추가했다.
+
+```ts
+const cracoEsbuildPlugin = require('craco-esbuild');
+
+module.exports = {
+  plugins: [{ plugin: cracoEsbuildPlugin }],
+  // ...
+};
+```
+
+`craco-swc`도 시도해봤는데, `esbuild-loader`가 더 빨랐다.
+
+## 결과
+
+![코인니스-웹-빌드-속도를-올려보자-01.png](/blog/images/20240311-202403-webpack-build-speed-esbuild-loader.png)
+
+![코인니스-웹-빌드-속도를-올려보자-02.png](/blog/images/20240311-202403-webpack-build-speed-esbuild-loader-01.png)
+
+총 빌드 시간이 약 **50% 감소**했다. 번들러를 교체하지 않고 loader만 바꿨을 뿐인데 유의미한 차이였다.
+
+## Vite가 Webpack보다 빠른 이유
+
+이 작업을 하면서 Vite와 Webpack의 차이도 정리해봤다.
+
+**개발 서버 구성 방식이 근본적으로 다르다.** Vite는 ES 모듈을 활용해서 각 모듈을 개별적으로 서빙한다. 브라우저가 필요할 때마다 해당 모듈만 가져온다. 수정한 파일만 다시 로드하면 되니까 빠르다. Webpack은 모든 모듈을 번들링해서 하나의 파일로 만들기 때문에, 수정할 때마다 전체 번들을 다시 생성해야 한다.
+
+**빌드 도구가 다르다.** Vite는 esbuild(Go 기반, 멀티스레드)를 사용하고, Webpack은 자체 자바스크립트 기반 빌드 엔진(싱글스레드)을 사용한다.
+
+**HMR 성능.** Vite의 HMR은 수정된 모듈만 교체해서 페이지 리로드 없이 변경 사항을 반영한다. Webpack의 HMR도 있지만 Vite가 더 빠르고 정확하게 동작한다.
+
+## 다음 스텝
+
+이 결과를 팀원들에게 공유했더니, loader만 교체하는 게 아니라 번들러 자체를 교체하자는 의견도 나왔다. 나도 적극 찬성이었다. 어쨌든 빌드 시간 감소라는 결과를 공유해서 프론트엔드 팀에 더 나은 방향성을 제시할 수 있었다.
+
+### Reference
+- [Webpack 빌드에 날개를 달아줄 Esbuild-Loader — 카카오엔터테인먼트](https://fe-developers.kakaoent.com/2022/220707-webpack-esbuild-loader/)
+- [esbuild-loader npm](https://www.npmjs.com/package/esbuild-loader)

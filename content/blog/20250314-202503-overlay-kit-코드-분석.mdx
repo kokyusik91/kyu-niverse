@@ -1,0 +1,407 @@
+---
+title: overlay-kit 까보기 — overlay.open() 한 줄이 모달을 여는 과정
+date: '2025-03-14'
+tags:
+  - frontend
+  - react
+  - open-source
+category: dev
+summary: 'overlay.open(MyModal) 한 줄 뒤에서 일어나는 이벤트 브릿지, 2단계 오픈, 상태 관리까지 코드를 따라가며 분석했다.'
+thumbnail: ''
+published: true
+---
+
+## 왜 이 라이브러리를 까봤나
+
+React에서 모달을 열 때마다 `useState`로 `isOpen` 상태 만들고, 닫기 핸들러 만들고, 조건부 렌더링 하고... 매번 반복이다. 그래서 `overlay.open(MyModal)` 한 줄로 모달을 열 수 있게 해주는 overlay-kit이라는 라이브러리가 눈에 들어왔다.
+
+근데 쓰다 보니 궁금해졌다. React는 선언적인데, `overlay.open()`은 명령형이다. 이 두 세계를 어떻게 연결한 걸까? Hook도 아닌 일반 함수가 React 상태를 어떻게 건드리는 거지?
+
+코드를 직접 까봤다.
+
+## 핵심 문제: 명령형 vs 선언적
+
+overlay-kit이 해결하려는 문제를 한마디로 정리하면 이거다.
+
+```typescript
+// 이걸 하고 싶음 (명령형)
+overlay.open(MyModal)
+
+// 근데 React는 이래야 함 (선언적)
+<MyModal isOpen={isOpen} />
+```
+
+`overlay.open()`은 React 컴포넌트 바깥 어디서든 호출할 수 있어야 한다. 이벤트 핸들러에서도, `setTimeout` 안에서도, 심지어 전역 스코프에서도. 그런데 React의 상태는 컴포넌트 안에서만 다룰 수 있다. Hook은 컴포넌트 밖에서 호출하면 에러가 난다.
+
+이 갭을 어떻게 메울 건가? 가능한 선택지를 떠올려보면:
+
+1. **전역 상태 라이브러리 (Redux, Zustand)** — 사용자가 특정 라이브러리에 종속된다. overlay-kit 쓰려고 Zustand까지 깔아야 하면 좀 아닌 거다.
+2. **직접 DOM 조작** — `document.createElement`로 div 만들어서 `ReactDOM.render` 하는 방식. React 렌더링 사이클을 무시하기 때문에 Framer Motion 같은 애니메이션 라이브러리랑 같이 쓰면 문제가 생긴다. 부모 Context도 접근 못 한다.
+3. **Context API만** — Hook은 컴포넌트 안에서만 쓸 수 있으니, 외부에서 `overlay.open()`을 호출하는 건 불가능하다.
+
+전부 한계가 있다. overlay-kit은 **이벤트 이미터**를 브릿지로 썼다.
+
+## 3-Layer 아키텍처
+
+코드를 읽으면서 정리한 구조는 이렇다.
+
+```
+┌─────────────────────────────────────────┐
+│ Layer 1: React 외부 (Pure JavaScript)    │  ← overlay.open(), close()
+└─────────────────────────────────────────┘
+                  ↓ emit
+┌─────────────────────────────────────────┐
+│ Layer 2: 브릿지 (Event Emitter)          │  ← emitter.on(), emitter.emit()
+└─────────────────────────────────────────┘
+                  ↓ on
+┌─────────────────────────────────────────┐
+│ Layer 3: React 내부 (Hooks & Components) │  ← Provider, Reducer, Controller
+└─────────────────────────────────────────┘
+```
+
+Layer 1은 순수 JavaScript다. React와 아무 관계 없다. Layer 3은 React 컴포넌트 세계다. 이 둘을 Layer 2의 이벤트 이미터가 연결한다.
+
+## Layer 2: 이벤트 이미터의 실체
+
+핵심이 되는 이미터 코드를 보면, 놀라울 정도로 단순하다.
+
+```typescript
+// packages/src/utils/emitter.ts
+export function createEmitter() {
+  const all = new Map();
+
+  return {
+    on(type, handler) {
+      const handlers = all.get(type);
+      if (handlers) {
+        handlers.push(handler);
+      } else {
+        all.set(type, [handler]);
+      }
+    },
+
+    emit(type, evt) {
+      let handlers = all.get(type);
+      if (handlers) {
+        handlers.slice().forEach((handler) => {
+          handler(evt);
+        });
+      }
+    },
+
+    off(type, handler) {
+      const handlers = all.get(type);
+      if (handlers) {
+        handlers.splice(handlers.indexOf(handler) >>> 0, 1);
+      }
+    },
+  };
+}
+```
+
+Map에 이벤트 이름을 key로, 핸들러 함수 배열을 value로 저장하는 pub/sub 패턴이다. `emit`하면 등록된 핸들러를 전부 실행한다. 의존성 0, 50줄도 안 되는 코드.
+
+이 이미터는 모듈 스코프에서 **딱 한 번** 생성된다. 싱글턴이다.
+
+```typescript
+// packages/src/utils/create-use-external-events.ts
+const emitter = createEmitter(); // 파일 최상위, 한 번만 실행
+```
+
+React 트리 밖에서 `emitter.emit()`을 호출하면, React 트리 안에서 `emitter.on()`으로 등록해둔 핸들러가 실행된다. 이게 브릿지의 전부다.
+
+## overlay.open()이 하는 일
+
+사용자가 `overlay.open(MyModal)`을 호출하면 내부에서 일어나는 일은 이거다.
+
+```typescript
+// packages/src/event.ts
+const open = (controller, options) => {
+  const overlayId = options?.overlayId ?? randomId();
+  const componentKey = randomId();
+  const dispatchOpenEvent = createEvent('open');
+
+  dispatchOpenEvent({ controller, overlayId, componentKey });
+  return overlayId;
+};
+```
+
+ID를 두 개 만든다. `overlayId`는 오버레이를 식별하는 고유 ID, `componentKey`는 React의 `key` prop으로 쓰인다. 그리고 `createEvent('open')`으로 이벤트 발행 함수를 만들어서 실행한다.
+
+`createEvent`는 결국 `emitter.emit()`을 호출하는 래퍼다.
+
+```typescript
+function createEvent(event) {
+  return (payload) => {
+    emitter.emit(`${prefix}:${event}`, payload);
+  };
+}
+```
+
+여기서 `prefix`는 `OverlayProvider`마다 다른 값이 붙는다. 여러 Provider를 쓸 때 이벤트가 섞이지 않도록 격리하는 장치다.
+
+## OverlayProvider: 이벤트를 받는 쪽
+
+이벤트를 받아서 React 상태로 바꾸는 건 `OverlayProvider`의 몫이다.
+
+```typescript
+// packages/src/context/provider/index.tsx
+function OverlayProvider({ children }) {
+  const [overlayState, overlayDispatch] = useReducer(overlayReducer, {
+    current: null,
+    overlayOrderList: [],
+    overlayData: {},
+  });
+
+  const open = useCallback(({ controller, overlayId, componentKey }) => {
+    overlayDispatch({
+      type: 'ADD',
+      overlay: {
+        id: overlayId,
+        componentKey,
+        isOpen: false,     // ← 닫힌 상태로 추가
+        isMounted: false,
+        controller,
+      },
+    });
+  }, []);
+
+  // 이벤트 구독
+  useOverlayEvent({ open, close, unmount, closeAll, unmountAll });
+
+  return (
+    <OverlayContextProvider value={overlayState}>
+      {children}
+      {overlayState.overlayOrderList.map((item) => {
+        const { id, componentKey, isOpen, controller: Controller } =
+          overlayState.overlayData[item];
+
+        return (
+          <ContentOverlayController
+            key={componentKey}
+            isOpen={isOpen}
+            controller={Controller}
+            overlayId={id}
+            overlayDispatch={overlayDispatch}
+          />
+        );
+      })}
+    </OverlayContextProvider>
+  );
+}
+```
+
+`useOverlayEvent`가 이미터에 핸들러를 등록하고, 외부에서 `overlay.open()`이 호출되면 `open` 핸들러가 실행되면서 `useReducer`의 `dispatch`가 돌아간다. React 외부의 명령형 호출이 React 내부의 상태 업데이트로 바뀌는 순간이다.
+
+주목할 건 `isOpen: false`다. 모달을 여는 건데 왜 닫힌 상태로 추가할까?
+
+## Two-Phase Opening: 왜 두 번에 걸쳐 여나
+
+이게 overlay-kit에서 가장 놀라웠던? 부분이다.
+
+```typescript
+// packages/src/context/provider/content-overlay-controller.tsx
+export const ContentOverlayController = memo(
+  ({ isOpen, overlayId, overlayDispatch, controller: Controller }) => {
+    useEffect(() => {
+      requestAnimationFrame(() => {
+        overlayDispatch({ type: 'OPEN', overlayId });
+      });
+    }, [overlayDispatch, overlayId]);
+
+    return (
+      <Controller
+        isOpen={isOpen}
+        close={() => overlayDispatch({ type: 'CLOSE', overlayId })}
+        unmount={() => overlayDispatch({ type: 'REMOVE', overlayId })}
+      />
+    );
+  }
+);
+```
+
+1단계: `isOpen: false`로 컴포넌트를 DOM에 추가한다.
+2단계: `useEffect` + `requestAnimationFrame`으로 다음 프레임에 `isOpen: true`로 바꾼다.
+
+왜 이렇게 하냐면, CSS 애니메이션 때문이다.
+
+```tsx
+// 한 번에 isOpen: true로 추가하면
+<motion.div animate={{ opacity: isOpen ? 1 : 0 }}>
+// → 처음부터 opacity: 1이니까 변화가 없음 → 애니메이션 안 됨
+
+// 2단계로 나누면
+// 1. opacity: 0 상태로 DOM에 마운트
+// 2. 다음 프레임에 opacity: 1로 변경
+// → 0에서 1로의 전환이 생기니까 애니메이션 작동
+```
+
+브라우저가 `isOpen: false` 상태를 한 프레임이라도 렌더링해야 CSS transition이 시작값을 인식한다. `requestAnimationFrame`은 정확히 한 프레임 뒤에 실행되니까 이 타이밍이 맞는 거다.
+
+## Reducer: 상태 전환 설계
+
+Reducer의 상태 구조도 잘 짜여져 있다.
+
+```typescript
+type OverlayData = {
+  current: string | null;           // 최상단 오버레이 ID
+  overlayOrderList: string[];       // 렌더링 순서
+  overlayData: Record<string, {     // 각 오버레이의 메타데이터
+    id: string;
+    isOpen: boolean;
+    isMounted: boolean;
+    controller: OverlayControllerComponent;
+  }>;
+};
+```
+
+배열(`overlayOrderList`)로 순서를 관리하고, 맵(`overlayData`)으로 각 오버레이의 상태를 관리한다. `current`는 현재 최상단 오버레이를 가리킨다.
+
+중첩 모달을 닫을 때 "다음 최상단"을 결정하는 로직도 있다.
+
+```typescript
+// packages/src/context/reducer.ts
+export const determineCurrentOverlayId = (
+  overlayOrderList,
+  overlayData,
+  targetOverlayId
+) => {
+  const openedOverlayOrderList = overlayOrderList.filter(
+    (id) => overlayData[id].isOpen === true
+  );
+
+  const targetIndex = openedOverlayOrderList.findIndex(
+    (item) => item === targetOverlayId
+  );
+
+  // 최상단을 닫으면 → 바로 아래가 current
+  // 중간을 닫으면 → 여전히 최상단이 current
+  return targetIndex === openedOverlayOrderList.length - 1
+    ? openedOverlayOrderList[targetIndex - 1] ?? null
+    : openedOverlayOrderList[openedOverlayOrderList.length - 1];
+};
+```
+
+모달 3개가 쌓여있을 때 맨 위를 닫으면 그 아래가 올라오고, 중간 걸 닫으면 여전히 맨 위가 current다. 스택처럼 동작하되, 중간 삭제도 허용하는 구조다.
+
+## 비슷한 라이브러리들도 다 이렇게 한다
+
+재밌는 건, React 생태계에서 "어디서든 호출 가능한 명령형 API"를 제공하는 라이브러리들이 전부 비슷한 패턴을 쓴다는 거다.
+
+**react-hot-toast**는 전역 `memoryState`와 `listeners` 배열을 둬서, `dispatch`하면 등록된 `setState` 함수들을 직접 호출한다.
+
+```typescript
+// react-hot-toast 방식
+const listeners = [];
+
+function dispatch(action) {
+  memoryState[id] = reducer(memoryState[id], action);
+  listeners.forEach(([id, setState]) => {
+    setState(memoryState[id]);  // React setState를 직접 호출
+  });
+}
+```
+
+**Sonner**는 Observer 클래스로 감쌌다.
+
+```typescript
+// Sonner 방식
+class Observer {
+  subscribers = [];
+
+  subscribe(callback) { this.subscribers.push(callback); }
+  publish(data) { this.subscribers.forEach(sub => sub(data)); }
+
+  addToast(data) {
+    this.toasts = [data, ...this.toasts];
+    this.publish({ toasts: this.toasts });
+  }
+}
+```
+
+구현 방식은 다르지만 구조는 같다.
+
+```
+명령형 API (React 외부)
+  ↓ 메시징 시스템
+React 상태 관리 (React 내부)
+  ↓
+선언적 렌더링
+```
+
+이벤트 이미터든, Observer 클래스든, Dispatcher + Listener든, 결국 React 외부와 내부를 연결하는 브릿지가 필요하다는 결론은 같다.
+
+| 라이브러리 | 브릿지 방식 | 상태 저장 |
+|-----------|-----------|---------|
+| overlay-kit | Event Emitter | React (useReducer) |
+| react-hot-toast | Dispatcher + Listener | 메모리 + React |
+| Sonner | Observer 클래스 | Observer + React |
+| react-toastify | Event Emitter | React |
+| nice-modal-react | Redux Store | Redux Store |
+
+overlay-kit은 이 중에서 가장 가벼운 축에 속한다. 자체 이미터를 쓰니까 외부 의존성이 0이고, 상태를 React의 `useReducer`에만 저장하니까 메모리 구조도 단순하다.
+
+## 초기 커밋을 보면 설계 과정이 보인다
+
+overlay-kit의 초기 커밋을 뒤져보면, 처음에는 브라우저의 `CustomEvent` API를 썼다.
+
+```typescript
+// 첫 번째 시도 (89535b4 커밋)
+function dispatchEvent(type, detail) {
+  window.dispatchEvent(new CustomEvent(type, { detail }))
+}
+
+function useExternalEvents(events) {
+  useEffect(() => {
+    window.addEventListener('es-overlay:open', handler)
+    return () => window.removeEventListener('es-overlay:open', handler)
+  }, [])
+}
+```
+
+브라우저 네이티브 API라서 의존성은 없었지만, `window`에 의존하니까 SSR에서 문제가 생기고 React Native도 안 된다. 이후에 자체 이미터로 리팩토링하면서 환경 독립적인 구조가 됐다.
+
+브라우저 API에서 시작해서 자체 이미터로 갈아탄 건, "처음부터 완벽하게 설계한 게 아니라 실용적으로 출발해서 점진적으로 개선했다"는 뜻이다. 설계 의사결정의 흔적이 커밋에 남아있으니까 오픈소스 읽을 때 초기 커밋부터 따라가면 "왜 이렇게 됐는지"가 보인다.
+
+## 전체 실행 흐름 정리
+
+`overlay.open(MyModal)` 한 줄이 모달을 여는 과정을 시간 순서로 정리하면 이렇다.
+
+```
+0ms   overlay.open(MyModal)
+      → emitter.emit('open', { controller: MyModal, overlayId, componentKey })
+      → Provider의 open 핸들러 실행
+      → overlayDispatch({ type: 'ADD', overlay: { isOpen: false } })
+
+~1ms  Reducer: ADD 실행
+      → state에 isOpen: false 상태로 저장
+
+~2ms  React 리렌더링 (1차)
+      → <MyModal isOpen={false} /> DOM에 추가
+
+~3ms  useEffect 실행
+      → requestAnimationFrame 등록
+
+~16ms 다음 프레임
+      → overlayDispatch({ type: 'OPEN' })
+      → Reducer: isOpen을 true로 변경
+
+~17ms React 리렌더링 (2차)
+      → <MyModal isOpen={true} />
+
+~18ms CSS/JS 애니메이션 시작
+```
+
+한 줄짜리 함수 호출이 이벤트 발행 → 핸들러 실행 → Reducer 2번 → React 리렌더링 2번을 거쳐서 모달을 연다. 복잡해 보이지만, 각 단계가 하는 일은 명확하다.
+
+## 까보고 나서
+
+overlay-kit의 전체 핵심 로직은 사실 파일 5개, 합쳐서 300줄 정도다. 복잡해 보이는 건 TypeScript 타입, SSR 지원, 에러 처리, 엣지 케이스 관리 같은 "프로덕션 라이브러리로서의 현실적 복잡도" 때문이지, 아이디어 자체는 단순하다.
+
+**이벤트 브릿지로 React 외부와 내부를 연결한다.**
+
+이 한 문장이 overlay-kit의 핵심이고, react-hot-toast도, Sonner도, react-toastify도 결국 같은 문제를 같은 방식으로 풀고 있다.
+
+예전에 프론트엔드 코드를 작성하면서 "리액트여야 하는 것과 리액트일 필요가 없는 것을 구분하자"고 적었던 적이 있는데, overlay-kit이 정확히 그 구분을 아키텍처 레벨에서 실현한 라이브러리였다. API 레이어는 순수 JavaScript, 상태 관리는 React, 이 둘을 이벤트 이미터가 연결한다. 관심사 분리가 레이어 분리로 구체화된 좋은 사례다.
+
+오픈소스 코드를 읽는 건 문서만 봤을 때는 보이지 않는 설계 판단이 보인다는 점에서 가치가 있다. "왜 2단계로 나눠서 열까?"라는 질문은 README 어디에도 안 적혀있지만, 코드를 읽으면 CSS 애니메이션 타이밍 때문이라는 걸 알 수 있다. 다음에 비슷한 구조를 설계할 때 이 경험이 쓰일 거다.

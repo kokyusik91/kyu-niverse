@@ -1,0 +1,96 @@
+---
+title: await 한 줄이 앱 전체를 멈추게 한 날
+date: '2025-09-01'
+tags:
+  - frontend
+  - debugging
+category: dev
+summary: Braze 동기화 await로 인한 Mutex 데드락 — 코드 한 줄이 거래소 서비스 전체를 멈추게 한 경험
+thumbnail: ''
+published: true
+---
+![202509-mutex-deadlock-debugging-1.png](/blog/images/20250901-202509-mutex-deadlock-debugging.png)
+
+## 버그가 동시에 세 군데서 터졌다
+
+어느 날 버그 리포트가 한꺼번에 들어왔다.
+
+- 거래하기 메인 온보딩/배너가 안 뜬다
+- KYC 인증 완료한 계정인데 Unverified로 나온다
+- 커뮤니티 GNB로 진입하면 리스트가 비어 있다
+
+세 개가 동시에 터지니까 처음엔 서버 장애인가 싶었다. 근데 서버는 멀쩡했다. 그리고 결정적 단서가 하나 있었다. **정상 로그인 상태에서는 재현이 안 된다.** accessToken이 만료된 상태에서 페이지를 다시 열었을 때만 발생한다.
+
+증상이 다 다른데 재현 조건이 같다? 그러면 높은 확률로 원인이 하나다.
+
+## 요청이 아예 안 나간다
+
+개발자 도구 Network 탭을 열어봤다. 서버 에러(4xx, 5xx)가 아니었다. auth 토큰이 필요한 API들이 **요청 자체를 보내지 않고 있었다.** pending 상태로 걸려 있는 것도 아니고, 그냥 안 나간다.
+
+클라이언트 어딘가에서 요청이 막히고 있다는 뜻이다. 인터셉터를 따라가 봤다.
+
+## 토큰 갱신 흐름과 Mutex
+
+코인니스의 API 요청은 이런 흐름을 탄다.
+
+```
+API 요청 → beforeRequest 인터셉터 → accessTokenMutex.runExclusive() → 토큰 확인/갱신 → 실제 요청
+```
+
+여기서 Mutex — 여러 비동기 작업이 동시에 같은 자원에 접근하는 걸 막는 잠금 장치다. 토큰 갱신에 Mutex를 쓰는 이유는, 토큰이 만료되면 페이지의 여러 API가 동시에 refresh를 시도할 수 있기 때문이다. 첫 번째 요청이 Mutex를 잠그고 갱신을 수행하면, 나머지 요청은 갱신이 끝날 때까지 대기한다. 갱신이 끝나면 새 토큰으로 순서대로 요청이 나간다.
+
+여기까지는 정상적인 설계다.
+
+## await 한 줄의 파괴력
+
+문제는 `refreshTokenHandler` 안에 있었다.
+
+```typescript
+const refreshTokenHandler = async (language?: LanguageType) => {
+  // 1. 토큰 갱신
+  const res = await refreshAccessToken({ refreshToken }, languageCode);
+  refresh(res.accessToken, res.refreshToken, res.userHash, isAutoLogIn);
+  setUserIdInAnalytics(res.userHash);
+
+  // 2. Braze 사용자 속성 동기화
+  await syncBrazeUserAttributes(languageCode);
+
+  // 3. 여기서 mutex 해제
+};
+```
+
+`syncBrazeUserAttributes()`는 Braze(마케팅 자동화 플랫폼)에 사용자 속성을 보내는 함수인데, 내부에서 `getMyList()`와 `getPearlInfo()` 같은 API를 호출하고 있었다. 이 API들도 accessToken이 필요하니까 `beforeRequest` 인터셉터를 거치고, `accessTokenMutex`를 잡으려 한다.
+
+근데 Mutex는 이미 `refreshTokenHandler`가 잡고 있다.
+
+```
+refreshTokenHandler (mutex 잠금 중)
+  → await syncBrazeUserAttributes()
+    → getMyList() 호출
+      → beforeRequest 인터셉터
+        → accessTokenMutex.runExclusive()  ← mutex 대기... 영원히
+```
+
+데드락이다. 데드락(deadlock)이란 두 작업이 서로가 끝나길 기다리면서 둘 다 영원히 진행되지 못하는 상태를 말한다. `refreshTokenHandler`는 `syncBrazeUserAttributes`가 끝나야 mutex를 풀 수 있고, `syncBrazeUserAttributes` 내부 API는 mutex가 풀려야 요청을 보낼 수 있다. 서로가 서로를 기다리니까 둘 다 멈춘다.
+
+이 상태에서 페이지에 있는 다른 모든 API 요청도 mutex 해제를 기다리며 줄을 선다. 결과적으로 앱 전체가 멈추는 것이다.
+
+## 수정은 한 줄
+
+```typescript
+// Before
+await syncBrazeUserAttributes(languageCode);
+
+// After
+syncBrazeUserAttributes(languageCode);
+```
+
+`await`를 지웠다. Braze 속성 동기화는 토큰 갱신의 핵심이 아니다. 토큰 갱신이 끝나면 mutex를 즉시 해제하고, Braze 동기화는 백그라운드에서 알아서 처리되게 하면 된다. 동기화가 약간 늦더라도 사용자 경험에 영향이 없다.
+
+이 한 줄로 거래소 온보딩, KYC, 커뮤니티 세 군데의 버그가 동시에 사라졌다.
+
+## 이 버그가 남긴 것
+
+변경량은 한 줄이지만, 거기까지 도달하려면 인터셉터 → Mutex → Braze → API 호출 체인 전체를 따라가야 했다. 작은 수정이 쉬운 버그라는 뜻은 아니다.
+
+그리고 이 경험 이후로 Mutex 안에서 외부 의존성을 `await`하는 코드를 보면 바로 경계하게 됐다. 특히 그 의존성이 같은 Mutex를 다시 잡으려 할 수 있는 경우. 비핵심 로직이 핵심 흐름을 블로킹하지 않도록, 관심사의 우선순위를 코드에도 반영해야 한다는 걸 몸으로 배운 케이스다.

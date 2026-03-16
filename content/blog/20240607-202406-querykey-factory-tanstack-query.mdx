@@ -1,0 +1,194 @@
+---
+title: 쿼리키를 통일성 있게 관리해보자 — feat. Query Key Factory
+date: '2024-06-07'
+tags:
+  - frontend
+  - refactoring
+category: dev
+summary: 파편화된 TanStack Query의 쿼리키를 Query Key Factory로 서비스별 하나의 객체로 통합한 과정
+thumbnail: ''
+published: true
+---
+
+## V5 업데이트를 하다 보니 보였다
+
+React Query V3에서 TanStack Query V5로 교체하는 작업 중이었다. 203건의 코드를 바꾸면서 쿼리키들이 일관되게 관리되고 있지 않다는 걸 깨달았다. 그때는 V5 업데이트에 집중하고 있었기 때문에 "끝나면 한번 고민해봐야지" 하고 남겨뒀다.
+
+V5 업데이트가 끝나고 돌아보니, 여러 파일에 흩어져 있는 쿼리키들을 관심사끼리 묶으면 어떨까? 여러 파일을 넘나들지 않고도 쿼리키를 추가하고 조회할 수 있지 않을까? 라는 관점에서 정리를 시작했다.
+
+## 기존 쿼리키의 문제
+
+선언 방식이 여러 가지였다. 첫 번째는 그냥 배열 하드코딩.
+
+```ts
+export const GET_BLOCK_USER_LIST = ['user', 'block'];
+export const GET_COINS = ['coins'];
+export const GET_PEARL_EVENT = ['pearl-events'];
+export const GET_PEARL_EVENT_LAST_PUBLISH_DATE = [...GET_PEARL_EVENT, 'last-publish-date'];
+```
+
+두 번째는 그나마 함수로 관리하는 방식. 하지만 특정 서비스 파일에만 이렇게 적용되어 있었다.
+
+```ts
+export const UserKeys = (userType: UserType, userId: number) => {
+  const Keys = {
+    all: [userType, userId],
+    post: (communityType: 'opinion' | 'lounge') => [...Keys.all, 'post', communityType],
+    bookmark: (communityType: 'opinion' | 'lounge') => [...Keys.all, 'bookmark', communityType],
+    pointLists: (pointType: string) => [...Keys.all, 'point', pointType],
+  };
+  return Keys;
+};
+```
+
+2번이 1번보다 낫긴 하다. 관련 쿼리키끼리 묶여 있으니까. 하지만 프로젝트 전체적으로 보면 두 방식이 혼재되어 있었다.
+
+문제를 정리하면 세 가지다.
+
+1. **하드코딩된 배열** — 상수 이름을 매번 짓는 것도 일이고, 이름만 보고 어떤 쿼리인지 파악이 어렵다
+2. **파편화** — 쿼리키가 어느 파일에서 관리되고 있는지 import를 타고 들어가야 알 수 있다
+3. **컨벤션 부재** — 쿼리키를 지정하는 규칙이 없어서, 그때그때 생각나는 대로 만들었다
+
+## 쿼리키가 왜 중요한가
+
+쿼리키는 TanStack Query의 `queryClient`에서 서버 데이터를 식별하는 열쇠다. `useQuery`에서 데이터를 가져올 때 쿼리키에 매핑시키기 위해 존재한다. 쿼리키를 `useQuery` 말고도 쓰는 곳이 꽤 많다.
+
+- `getQueryData({ queryKey })` — 캐시에서 데이터 직접 조회
+- `setQueryData({ queryKey })` — 캐시 데이터 직접 업데이트
+- `invalidateQueries({ queryKey })` — 데이터 무효화 + 리페치
+- `removeQueries({ queryKey })` — 캐시 데이터 삭제
+- `prefetchQuery({ queryKey })` — 미리 데이터 가져오기
+
+```ts
+useMutation(updateTodo, {
+  onSuccess(newTodo) {
+    queryClient.setQueryData(queries.todos.detail(newTodo.id).queryKey, newTodo);
+    queryClient.invalidateQueries({
+      queryKey: queries.todos.list._def,
+    });
+  },
+});
+```
+
+이런 메서드를 쓸 때 쿼리키가 틀리면, 없는 쿼리키에 접근하거나 다른 쿼리키의 데이터를 건드리게 된다. 의도치 않은 데이터 업데이트가 발생하거나, 업데이트가 안 되거나. 쿼리키를 체계적으로 관리하는 건 단순한 정리가 아니라, 데이터 정합성의 문제다.
+
+## Query Key Factory 도입
+
+Query Key Factory — TanStack Query 커뮤니티에서 공식적으로 추천하는 라이브러리로, 쿼리키를 타입 안전한 객체로 관리할 수 있게 해준다. 결국 쿼리키 팩토리는 배열을 return하는 함수를 구조화한 것이다.
+
+라이브러리에서 제공하는 선언 방식은 두 가지다.
+
+1. 하나의 거대한 쿼리키 스토어에 전부 넣는 방식
+2. 관심사별로 쿼리키를 나누고 `merge`해서 사용하는 방식
+
+나는 1번을 선택했다. 단, 프로젝트의 모든 쿼리키를 하나에 넣는 건 아니고 **서비스별로 쿼리키 스토어를 하나씩** 만들었다. 코인니스는 총 5개의 서비스가 있으니 5개의 쿼리키 스토어가 생긴다.
+
+2번을 안 쓴 이유는, 서비스별로 나누면서 굳이 병합까지 할 필요가 없다고 판단해서다. 그렇다고 서비스 하위 파일별로 쪼개면 쿼리키 스토어가 너무 많아진다. 마켓 같은 경우 하위 서비스 파일이 6개인데, 각각 쿼리키 객체를 만들어 병합하는 것보다 하나의 `marketQueryKeys` 안에 묶는 게 나았다.
+
+각 서비스 디렉토리 하위에 `querykey.ts` 파일을 만들고, 해당 서비스의 쿼리키를 전부 넣었다.
+
+```ts
+// services/Market/querykey.ts
+export const marketQueryKeys = createQueryKeyStore({
+  tickers: {
+    list: (params: GetTickersReq) => [{ ...params }],
+    summary: (locale: ILocale) => [locale],
+    top10: (params: GetTop100Params) => [{ ...params }],
+    bookmarkList: (userId: number, { isLocal }: { isLocal: boolean }) => [userId, { isLocal }],
+  },
+  theme: {
+    list: (params?: GetThemesReq) => [{ ...params }],
+    detail: (themeId: number, params: GetThemesReq) => [themeId, { ...params }],
+  },
+  future: {
+    liquidations: (params: GetLiquidationsParams & PublicLanguageCode) => [{ ...params }],
+    longshort: (params: GetLongShortParams & PublicLanguageCode) => [{ ...params }],
+    funding: (params: GetFundingParams & PublicLanguageCode) => [{ ...params }],
+    openInterest: (params: GetOpenInterestParams & PublicLanguageCode) => [{ ...params }],
+  },
+  currency: {
+    list: (params: GetCurrenciesReq) => [{ ...params }],
+    whitelist: null,
+  },
+  chart: {
+    info: (originCode: string, params: GetChartInfoReq) => [originCode, { ...params }],
+    candle: ({ interval, pairId }: { interval: IntervalType; pairId: number }) => [{ interval, pairId }],
+  },
+});
+```
+
+서비스 파일명이 첫 번째 depth가 되고, 그 안에서 용도별로 나눈다. `tickers.list`, `tickers.summary`, `chart.info` — 이름만 보고 어떤 쿼리인지 파악할 수 있다.
+
+## Before / After
+
+기존 하드코딩 방식에서 쿼리키 팩토리로 바꾸면 이렇게 된다.
+
+```ts
+// Before — 하드코딩된 상수 + 수동으로 배열 조합
+import { GET_TICKERS, GET_TICKER_BOOKMARKS, GET_TICKER_SUMMARY } from 'services/Market/ticker';
+
+const { data: coinData } = useQuery({
+  queryKey: [...GET_TICKERS, currLanguage, isLocal],
+  queryFn: () => getTickers({ languageCode: currLanguage, isLocal }),
+});
+
+const { data: bookmarkData } = useQuery({
+  queryKey: [...GET_TICKER_BOOKMARKS, currLanguage, isLocal, userId],
+  queryFn: () => getTickerBookmarks(isLocal),
+});
+
+// After — 쿼리키 팩토리
+import { marketQueryKeys } from 'services/Market/querykey';
+
+const { data: coinData } = useQuery({
+  queryKey: marketQueryKeys.tickers.list({ languageCode: currLanguage, isLocal }).queryKey,
+  queryFn: () => getTickers({ languageCode: currLanguage, isLocal }),
+});
+
+const { data: bookmarkData } = useQuery({
+  queryKey: marketQueryKeys.tickers.bookmarkList(userId, { isLocal }).queryKey,
+  queryFn: () => getTickerBookmarks(isLocal),
+});
+```
+
+달라진 점은 세 가지다.
+
+**1. import가 하나로 줄었다.** 기존에는 `GET_TICKERS`, `GET_TICKER_BOOKMARKS`, `GET_TICKER_SUMMARY`를 각각 import했는데, 이제 `marketQueryKeys` 하나만 import하면 된다.
+
+**2. 쿼리키에 들어가는 파라미터가 타입으로 강제된다.** `marketQueryKeys.tickers.list()`에 `GetTickersReq` 타입이 아닌 값을 넣으면 컴파일 에러가 난다. 기존에는 `[...GET_TICKERS, currLanguage, isLocal]` 같이 수동으로 배열을 조합해서, 순서가 바뀌거나 빠져도 런타임에서야 알 수 있었다.
+
+**3. 쿼리키를 찾으러 여러 파일을 돌아다닐 필요가 없다.** `marketQueryKeys`만 열면 마켓 서비스의 모든 쿼리키가 한눈에 보인다.
+
+## `useInfiniteQuery`에서도 동일하게 적용
+
+```ts
+// Before
+import { GET_PAIR_CANDLE } from 'services/Market/chart';
+
+const { data } = useInfiniteQuery({
+  queryKey: [...GET_PAIR_CANDLE, interval, pairId],
+  queryFn: ({ pageParam }) => getPairCandle(interval, pairId!, { to: pageParam, limit }),
+  // ...
+});
+
+// After
+const { data } = useInfiniteQuery({
+  queryKey: marketQueryKeys.chart.candle({ interval, pairId: pairId ?? -999 }).queryKey,
+  queryFn: ({ pageParam }) => getPairCandle(interval, pairId!, { to: pageParam, limit }),
+  // ...
+});
+```
+
+## 돌이켜보면
+
+V5 업데이트를 하면서 203건의 쿼리키를 만졌기 때문에, 어떤 쿼리키가 어디에 있고 어떤 패턴으로 선언되어 있는지 이미 파악이 된 상태였다. 그래서 바로 다음 작업으로 쿼리키 팩토리를 적용할 수 있었다. V5 업데이트 없이 쿼리키 팩토리만 따로 했으면 오히려 더 힘들었을 거다.
+
+이번 작업에서는 마켓 서비스에만 적용했다. 나머지 서비스들도 같은 방식으로 점진적으로 전환할 예정이다.
+
+쿼리키를 체계적으로 관리하는 건 단순한 코드 정리가 아니다. `queryClient`의 메서드들을 안전하게 쓸 수 있는 기반이 되고, 새 쿼리를 추가할 때 "이름을 뭘로 하지?"라는 고민을 없애준다. 서비스 파일명 + 용도 — 이 컨벤션 하나로 쿼리키 작명이 통일됐다.
+
+
+### Reference 📚
+- [**Effective React Query Keys (tanstack 메인테이너 블로그)**](https://tkdodo.eu/blog/effective-react-query-keys)
+- [**Tanstack community (querykey-factory)**](https://tanstack.com/query/latest/docs/framework/react/community/community-projects#query-key-factory)
+
