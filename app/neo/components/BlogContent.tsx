@@ -93,7 +93,7 @@ function usePostNavigation(posts: BlogPostData[], initialPostSlug?: string) {
   const selectPost = (slug: string) => {
     isUserSelection.current = true;
     setSelectedSlug(slug);
-    router.push(`/neo?post=${slug}`, { scroll: false });
+    router.push(`/?post=${slug}`, { scroll: false });
   };
 
   useEffect(() => {
@@ -111,7 +111,7 @@ function usePostNavigation(posts: BlogPostData[], initialPostSlug?: string) {
     if (didSyncInitialUrl.current) return;
     if (!searchParams.get("post") && !initialPostSlug && selectedSlug) {
       didSyncInitialUrl.current = true;
-      router.push(`/neo?post=${selectedSlug}`, { scroll: false });
+      router.push(`/?post=${selectedSlug}`, { scroll: false });
     }
   }, [selectedSlug, searchParams, initialPostSlug, router]);
 

@@ -13,6 +13,7 @@ export default function BlogWindowSync({
   const router = useRouter();
   const { windows, openWindow, closeWindow } = useWindowState();
   const prevPostParam = useRef(searchParams.get("post"));
+  const hasMounted = useRef(false);
 
   const postParam = searchParams.get("post");
   const blogWindow = windows.find((w) => w.id === "blog");
@@ -26,9 +27,13 @@ export default function BlogWindowSync({
   }, [hasPostInUrl, openWindow]);
 
   useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
     const blogClosedWhileUrlExists = !isBlogOpen && Boolean(postParam);
     if (blogClosedWhileUrlExists) {
-      router.replace("/neo", { scroll: false });
+      router.replace("/", { scroll: false });
     }
   }, [isBlogOpen, postParam, router]);
 
