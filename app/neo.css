@@ -75,6 +75,21 @@
   background: var(--hover-color, #FF6B6B);
 }
 
+/* ============ Notification Alert ============ */
+@keyframes neoNotificationSlideIn {
+  0% { opacity: 0; transform: translateX(20px) scale(0.95); }
+  60% { opacity: 1; transform: translateX(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes neoNotificationSlideOut {
+  0% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(20px) scale(0.95); }
+}
+
+.neo-notification--opening { animation: neoNotificationSlideIn 0.3s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.neo-notification--closing { animation: neoNotificationSlideOut 0.2s ease-in forwards; pointer-events: none; }
+
 /* ============ Scrollbar Hide ============ */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
