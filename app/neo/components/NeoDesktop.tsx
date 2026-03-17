@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { WindowManagerProvider } from "./WindowManager";
 import Desktop from "./Desktop";
 import BlogWindowSync from "./BlogWindowSync";
+import MobileLayout from "./mobile/MobileLayout";
+import { useIsMobile } from "../hooks/useIsMobile";
 import type { BlogFrontmatter } from "@/lib/blog";
 
 export interface BlogPostData {
@@ -21,6 +23,16 @@ export default function NeoDesktop({
   initialPostSlug?: string;
   books?: { id: string; coverUrl: string; title: string }[];
 }) {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Suspense>
+        <MobileLayout blogPosts={blogPosts} initialPostSlug={initialPostSlug} />
+      </Suspense>
+    );
+  }
+
   return (
     <WindowManagerProvider>
       <Suspense>

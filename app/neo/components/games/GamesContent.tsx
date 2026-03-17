@@ -130,8 +130,8 @@ function GamesExplorer() {
         sortKey={sortKey}
         onSortChange={setSortKey}
       />
-      <div className="neo-scrollbar flex-1 overflow-y-auto p-5">
-        <div className="grid grid-cols-3 gap-4">
+      <div className="neo-scrollbar flex-1 overflow-y-auto p-3 md:p-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4">
           {filteredGames.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}

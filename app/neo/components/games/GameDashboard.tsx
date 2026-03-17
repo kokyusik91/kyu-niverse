@@ -42,7 +42,7 @@ export default function GameDashboard({ stats }: { stats: DashboardStats }) {
   ];
 
   return (
-    <div className="flex gap-4 p-5 border-b-3 border-neo-border">
+    <div className="grid grid-cols-3 gap-2 p-3 border-b-3 border-neo-border md:flex md:gap-4 md:p-5">
       {cards.map((card) => (
         <div
           key={card.label}
@@ -51,7 +51,7 @@ export default function GameDashboard({ stats }: { stats: DashboardStats }) {
           <p className={`font-neo-heading text-[11px] uppercase tracking-wider ${card.labelColor}`}>
             {card.label}
           </p>
-          <p className={`font-space-grotesk text-4xl font-bold ${card.textColor} leading-tight`}>
+          <p className={`font-space-grotesk text-2xl font-bold md:text-4xl ${card.textColor} leading-tight`}>
             {card.main}
           </p>
           {card.sub && (
