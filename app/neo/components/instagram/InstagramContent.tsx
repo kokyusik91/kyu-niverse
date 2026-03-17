@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import type {
   Hashtag,
   Influencer,
@@ -12,7 +13,8 @@ import QueryProvider from "./QueryProvider";
 import InstagramIcon from "../icons/InstagramIcon";
 import UserIcon from "../icons/UserIcon";
 import { useInstagramData } from "./useInstagramData";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, ExternalLink } from "lucide-react";
+import { formatCaption } from "./formatCaption";
 
 function getPostThumbnail(post: UnifiedPost): string | null {
   if (post.media_type === "CAROUSEL_ALBUM" && post.children?.length) {
@@ -30,6 +32,16 @@ function PostCard({
   onClick: () => void;
 }) {
   const thumbnail = getPostThumbnail(post);
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const captionRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = captionRef.current;
+    if (el) {
+      setIsClamped(el.scrollHeight > el.clientHeight);
+    }
+  }, [post.caption]);
 
   return (
     <button
@@ -40,9 +52,10 @@ function PostCard({
       {post.media_type === "VIDEO" && post.media_url ? (
         <div className="relative w-full overflow-hidden">
           <video
-            src={post.media_url}
+            src={`${post.media_url}#t=0.001`}
             muted
             preload="metadata"
+            playsInline
             className="block w-full"
           />
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -71,9 +84,26 @@ function PostCard({
       ) : null}
       <div className="flex flex-col gap-2 p-3.5">
         {post.caption && (
-          <p className="m-0 line-clamp-3 text-[13px] leading-relaxed text-gray-700">
-            {post.caption}
-          </p>
+          <div className="relative">
+            <p
+              ref={captionRef}
+              className={`m-0 font-['IBM_Plex_Sans_KR',sans-serif] text-[13px] leading-relaxed text-gray-700 md:line-clamp-3 md:font-[inherit] ${!expanded ? "line-clamp-3" : ""}`}
+            >
+              {formatCaption(post.caption)}
+            </p>
+            {!expanded && isClamped && (
+              <span
+                role="button"
+                className="absolute right-0 bottom-[3px] bg-gradient-to-l from-white from-70% to-transparent pl-6 text-[12px] font-semibold text-[#8B5CF6] md:hidden"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpanded(true);
+                }}
+              >
+                ...more
+              </span>
+            )}
+          </div>
         )}
         <div className="flex items-center gap-3 text-xs text-gray-500">
           <span className="flex items-center gap-1">
@@ -84,10 +114,19 @@ function PostCard({
             <MessageCircle className="text-neo-info size-3.5" />
             {post.comments_count}
           </span>
+          <a
+            href={post.permalink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto flex items-center gap-1 text-[#8B5CF6] hover:text-[#7C3AED] md:hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink className="size-3.5" />
+          </a>
         </div>
         {post.media_type !== "IMAGE" && (
           <span
-            className={`border-neo-border self-start rounded border-[1.5px] px-2 py-0.5 text-[10px] font-bold ${
+            className={`border-neo-border hidden self-start rounded border-[1.5px] px-2 py-0.5 text-[10px] font-bold md:inline ${
               post.media_type === "VIDEO" ? "bg-blue-200" : "bg-purple-200"
             }`}
           >

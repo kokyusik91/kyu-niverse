@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import type { Post, InfluencerPost, PostChild } from "./types";
 import InstagramIcon from "../icons/InstagramIcon";
+import { formatCaption } from "./formatCaption";
 
 type DialogPost = (Post | InfluencerPost) & {
   hashtag_name?: string;
@@ -76,8 +77,8 @@ function CarouselMedia({ slides }: { slides: PostChild[] }) {
       </CarouselContent>
       {sorted.length > 1 && (
         <>
-          <CarouselPrevious className="border-neo-border shadow-neo-sm text-neo-text left-3 h-8 w-8 border-2 bg-white/90" />
-          <CarouselNext className="border-neo-border shadow-neo-sm text-neo-text right-3 h-8 w-8 border-2 bg-white/90" />
+          <CarouselPrevious className="border-neo-border shadow-neo-sm text-neo-text left-2 h-8 w-8 border-2 bg-white/90 md:left-3" />
+          <CarouselNext className="border-neo-border shadow-neo-sm text-neo-text right-2 h-8 w-8 border-2 bg-white/90 md:right-3" />
         </>
       )}
     </Carousel>
@@ -93,12 +94,44 @@ export default function PostDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-neo-border shadow-neo-lg max-w-[900px] gap-0 overflow-hidden rounded-2xl border-[5px] bg-white p-0 [&>button:last-child]:hidden">
+      {/* Mobile: media-only fullscreen */}
+      <DialogContent className="border-0 bg-transparent p-0 shadow-none md:border-[5px] md:border-neo-border md:shadow-neo-lg md:max-w-[900px] md:overflow-hidden md:rounded-2xl md:bg-[#1A1A1A] [&>button:last-child]:hidden">
         <VisuallyHidden>
           <DialogTitle>포스트 상세</DialogTitle>
         </VisuallyHidden>
-        <div className="flex h-[620px]">
-          <div className="relative flex w-[480px] shrink-0 items-center justify-center overflow-hidden bg-[#1A1A1A]">
+
+        {/* Mobile layout: media only, centered */}
+        <div className="flex items-center justify-center px-4 md:hidden">
+          <div className="w-full overflow-hidden rounded-2xl">
+            {post.media_type === "CAROUSEL_ALBUM" && post.children?.length ? (
+              <CarouselMedia slides={post.children} />
+            ) : post.media_url ? (
+              post.media_type === "VIDEO" ? (
+                <video
+                  src={post.media_url}
+                  controls
+                  playsInline
+                  className="w-full object-contain"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={post.media_url}
+                  alt={post.caption ?? "post image"}
+                  className="w-full object-contain"
+                />
+              )
+            ) : (
+              <div className="text-sm font-medium text-white/50">
+                이미지 없음
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop layout: media + info panel */}
+        <div className="hidden md:flex md:h-[620px]">
+          <div className="relative flex w-[480px] shrink-0 items-center justify-center overflow-hidden rounded-l-2xl bg-[#1A1A1A]">
             {post.media_type === "CAROUSEL_ALBUM" && post.children?.length ? (
               <CarouselMedia slides={post.children} />
             ) : post.media_url ? (
@@ -140,7 +173,7 @@ export default function PostDetailDialog({
                   CAPTION
                 </p>
                 <p className="text-neo-text m-0 text-sm leading-relaxed font-medium wrap-break-word whitespace-pre-wrap">
-                  {post.caption ?? "캡션 없음"}
+                  {post.caption ? formatCaption(post.caption) : "캡션 없음"}
                 </p>
               </div>
 
