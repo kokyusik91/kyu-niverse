@@ -446,33 +446,54 @@ function InstagramExplorer() {
         </div>
 
         {viewMode === "hashtag" && (
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-bold text-gray-500">
-              해시태그 결과
-            </span>
-            <div className="border-neo-border flex overflow-hidden rounded-lg border-2">
-              <button
-                type="button"
-                className={`flex h-7 items-center px-3 text-[11px] ${
-                  collectionType === "top"
-                    ? "bg-[#C4B5FD] font-bold"
-                    : "bg-neo-surface font-semibold text-gray-500"
-                }`}
-                onClick={() => setCollectionType("top")}
-              >
-                인기순
-              </button>
-              <button
-                type="button"
-                className={`border-neo-border flex h-7 items-center border-l-2 px-3 text-[11px] ${
-                  collectionType === "recent"
-                    ? "bg-[#C4B5FD] font-bold"
-                    : "bg-neo-surface font-semibold text-gray-500"
-                }`}
-                onClick={() => setCollectionType("recent")}
-              >
-                최신순
-              </button>
+          <div className="flex flex-col gap-2">
+            {hashtags.length > 0 && (
+              <div className="scrollbar-hide flex gap-1 overflow-x-auto">
+                {hashtags.map((h) => (
+                  <button
+                    key={h.id}
+                    type="button"
+                    className={`flex shrink-0 items-center gap-1 rounded-lg border-2 px-2.5 py-1.5 text-[12px] ${
+                      selectedHashtagId === h.id
+                        ? "border-neo-border bg-[#C4B5FD] font-bold"
+                        : "border-transparent bg-gray-50 font-medium"
+                    }`}
+                    onClick={() => setSelectedHashtagId(h.id)}
+                  >
+                    <span className="font-black text-[#8B5CF6]">#</span>
+                    <span>{h.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] font-bold text-gray-500">
+                해시태그 결과
+              </span>
+              <div className="border-neo-border flex overflow-hidden rounded-lg border-2">
+                <button
+                  type="button"
+                  className={`flex h-7 items-center px-3 text-[11px] ${
+                    collectionType === "top"
+                      ? "bg-[#C4B5FD] font-bold"
+                      : "bg-neo-surface font-semibold text-gray-500"
+                  }`}
+                  onClick={() => setCollectionType("top")}
+                >
+                  인기순
+                </button>
+                <button
+                  type="button"
+                  className={`border-neo-border flex h-7 items-center border-l-2 px-3 text-[11px] ${
+                    collectionType === "recent"
+                      ? "bg-[#C4B5FD] font-bold"
+                      : "bg-neo-surface font-semibold text-gray-500"
+                  }`}
+                  onClick={() => setCollectionType("recent")}
+                >
+                  최신순
+                </button>
+              </div>
             </div>
           </div>
         )}

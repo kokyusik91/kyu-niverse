@@ -98,7 +98,7 @@
 .neo-scrollbar::-webkit-scrollbar { width: 8px; }
 .neo-scrollbar::-webkit-scrollbar-track { background: var(--color-neo-bg); }
 .neo-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-neo-border);
+  background: #C4B5FD;
   border: 2px solid var(--color-neo-bg);
   border-radius: 12px;
 }
