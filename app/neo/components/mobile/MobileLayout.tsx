@@ -139,9 +139,9 @@ export default function MobileLayout({
         </MobileAppScreen>
       </div>
 
-      {/* Blog detail: 리스트 위에 오버레이 */}
+      {/* Blog detail: 리스트 위에 오버레이 (불투명 배경) */}
       {blogDetailPost && (
-        <div className="absolute inset-0 z-10 flex flex-col">
+        <div className="absolute inset-0 z-10 flex flex-col bg-white">
           <MobileAppScreen
             title="블로그.exe"
             color={APP_COLORS.blog}
