@@ -404,27 +404,132 @@ function InstagramExplorer() {
   } = useInstagramData();
 
   return (
-    <div className="font-neo text-neo-text bg-neo-bg flex h-full">
-      <Sidebar
-        viewMode={viewMode}
-        onChangeViewMode={setViewMode}
-        hashtags={hashtags}
-        influencers={influencers}
-        selectedHashtagId={selectedHashtagId}
-        onSelectHashtag={setSelectedHashtagId}
-        selectedInfluencerId={selectedInfluencerId}
-        onSelectInfluencer={setSelectedInfluencerId}
-      />
+    <div className="font-neo text-neo-text bg-neo-bg flex h-full flex-col md:flex-row">
+      <div className="hidden md:block">
+        <Sidebar
+          viewMode={viewMode}
+          onChangeViewMode={setViewMode}
+          hashtags={hashtags}
+          influencers={influencers}
+          selectedHashtagId={selectedHashtagId}
+          onSelectHashtag={setSelectedHashtagId}
+          selectedInfluencerId={selectedInfluencerId}
+          onSelectInfluencer={setSelectedInfluencerId}
+        />
+      </div>
 
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden p-2 pl-0">
-        <div className="border-neo-border bg-neo-surface shadow-neo-sm flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border-3">
-          <TopBar
-            viewMode={viewMode}
-            currentTitle={currentTitle}
-            postCount={posts.length}
-            collectionType={collectionType}
-            onChangeCollectionType={setCollectionType}
-          />
+      {/* Mobile: inline controls */}
+      <div className="border-neo-border flex flex-col gap-2 border-b-3 p-3 md:hidden">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className={`border-neo-border flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border-2 text-[13px] ${
+              viewMode === "hashtag"
+                ? "bg-[#C4B5FD] font-bold"
+                : "bg-neo-surface font-medium text-gray-500"
+            }`}
+            onClick={() => setViewMode("hashtag")}
+          >
+            <span className="font-black">#</span>
+          </button>
+          <button
+            type="button"
+            className={`border-neo-border flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border-2 text-[13px] ${
+              viewMode === "influencer"
+                ? "bg-[#C4B5FD] font-bold"
+                : "bg-neo-surface font-medium text-gray-500"
+            }`}
+            onClick={() => setViewMode("influencer")}
+          >
+            <UserIcon size={16} />
+          </button>
+        </div>
+
+        {viewMode === "hashtag" && (
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-bold text-gray-500">
+              해시태그 결과
+            </span>
+            <div className="border-neo-border flex overflow-hidden rounded-lg border-2">
+              <button
+                type="button"
+                className={`flex h-7 items-center px-3 text-[11px] ${
+                  collectionType === "top"
+                    ? "bg-[#C4B5FD] font-bold"
+                    : "bg-neo-surface font-semibold text-gray-500"
+                }`}
+                onClick={() => setCollectionType("top")}
+              >
+                인기순
+              </button>
+              <button
+                type="button"
+                className={`border-neo-border flex h-7 items-center border-l-2 px-3 text-[11px] ${
+                  collectionType === "recent"
+                    ? "bg-[#C4B5FD] font-bold"
+                    : "bg-neo-surface font-semibold text-gray-500"
+                }`}
+                onClick={() => setCollectionType("recent")}
+              >
+                최신순
+              </button>
+            </div>
+          </div>
+        )}
+
+        {viewMode === "influencer" && influencers.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <span className="text-[11px] font-bold tracking-wide text-gray-500 uppercase">
+              Influencer ({influencers.length})
+            </span>
+            <div className="scrollbar-hide flex gap-1 overflow-x-auto">
+              {influencers.map((inf) => (
+                <button
+                  key={inf.id}
+                  type="button"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-lg border-2 px-2.5 py-1.5 text-[12px] ${
+                    selectedInfluencerId === inf.id
+                      ? "border-neo-border bg-[#C4B5FD] font-bold"
+                      : "border-transparent bg-gray-50 font-medium"
+                  }`}
+                  onClick={() => setSelectedInfluencerId(inf.id)}
+                >
+                  {inf.profile_picture_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={inf.profile_picture_url}
+                      alt={inf.username}
+                      className="border-neo-border size-5 rounded-full border object-cover"
+                    />
+                  ) : (
+                    <span className="border-neo-border flex size-5 items-center justify-center rounded-full border bg-gray-200">
+                      <UserIcon size={12} />
+                    </span>
+                  )}
+                  <span>{inf.username}</span>
+                  {inf.post_count !== undefined && (
+                    <span className="border-neo-border rounded border bg-blue-200 px-1 py-px text-[9px] font-bold">
+                      {inf.post_count}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden p-0 md:p-2 md:pl-0">
+        <div className="border-neo-border bg-neo-surface flex min-h-0 flex-1 flex-col overflow-hidden border-0 md:shadow-neo-sm md:rounded-lg md:border-3">
+          <div className="hidden md:block">
+            <TopBar
+              viewMode={viewMode}
+              currentTitle={currentTitle}
+              postCount={posts.length}
+              collectionType={collectionType}
+              onChangeCollectionType={setCollectionType}
+            />
+          </div>
           <PostGrid
             posts={posts}
             isLoading={activeQuery.isLoading}

@@ -31,8 +31,8 @@ export default function GameFilterBar({
   };
 
   return (
-    <div className="flex items-center justify-between h-[52px] px-5 border-b-3 border-neo-border">
-      <div className="flex gap-2">
+    <div className="flex items-center justify-between h-[52px] px-3 border-b-3 border-neo-border md:px-5">
+      <div className="scrollbar-hide flex gap-2 overflow-x-auto">
         {["All", ...genres].map((genre) => {
           const isActive = genre === "All" ? selectedGenre === null : selectedGenre === genre;
           return (
