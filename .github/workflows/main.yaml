@@ -34,7 +34,7 @@ jobs:
           NEXT_PUBLIC_GAMES_API_URL: ${{ secrets.NEXT_PUBLIC_GAMES_API_URL }}
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build
         run: npm run build
