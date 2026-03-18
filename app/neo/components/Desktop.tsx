@@ -27,6 +27,7 @@ import BlogContent from "./BlogContent";
 import BookstoreContent from "./bookstore/BookstoreContent";
 import InstagramContent from "./instagram/InstagramContent";
 import GamesContent from "./games/GamesContent";
+import PostItBoard from "./postit/PostItContent";
 import NotificationAlert from "./NotificationAlert";
 import type { BlogPostData } from "./NeoDesktop";
 import {
@@ -479,6 +480,8 @@ export default function Desktop({
               title={item.title}
             />
           ))}
+
+          <PostItBoard />
 
           {windows.map((w) => (
             <Window key={w.id} windowState={w}>
