@@ -501,29 +501,49 @@ function PlacedNote({
   const noteRef = useRef<HTMLDivElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
 
+  const DRAG_THRESHOLD = 5;
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (note.isEditing) return;
+      const target = e.target as HTMLElement;
+      if (target.closest("button")) return;
       e.preventDefault();
       e.stopPropagation();
+
       const el = noteRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-      setIsDragging(true);
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const isTextarea = !!target.closest("textarea");
+      let dragStarted = false;
 
       const handleMouseMove = (ev: MouseEvent) => {
-        if (!boardRef.current) return;
-        const deskRect = boardRef.current.getBoundingClientRect();
-        if (el) {
-          el.style.left = `${ev.clientX - dragOffset.current.x - deskRect.left}px`;
-          el.style.top = `${ev.clientY - dragOffset.current.y - deskRect.top}px`;
+        if (!dragStarted) {
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+          dragStarted = true;
+          setIsDragging(true);
+          if (isTextarea) (target as HTMLTextAreaElement).blur();
         }
+        if (!boardRef.current || !el) return;
+        const deskRect = boardRef.current.getBoundingClientRect();
+        el.style.left = `${ev.clientX - dragOffset.current.x - deskRect.left}px`;
+        el.style.top = `${ev.clientY - dragOffset.current.y - deskRect.top}px`;
       };
 
       const handleMouseUp = (ev: MouseEvent) => {
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
+
+        if (!dragStarted) {
+          if (isTextarea) (target as HTMLTextAreaElement).focus();
+          return;
+        }
+
         setIsDragging(false);
         if (!boardRef.current) return;
         const deskRect = boardRef.current.getBoundingClientRect();
@@ -535,7 +555,7 @@ function PlacedNote({
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     },
-    [note.isEditing, note.id, onMove, boardRef]
+    [note.id, onMove, boardRef]
   );
 
   return (
@@ -545,7 +565,8 @@ function PlacedNote({
       style={{
         left: `${note.x}%`, top: `${note.y}%`,
         zIndex: isDragging ? 3 : note.isEditing ? 2 : 0,
-        cursor: note.isEditing ? "default" : isDragging ? "grabbing" : "grab",
+        cursor: isDragging ? "grabbing" : note.isEditing ? "default" : "grab",
+        userSelect: isDragging ? "none" : undefined,
       }}
       initial={note.isNew ? { scale: 1.06, opacity: 0, rotate: note.rotation - 4 } : { scale: 0.9, opacity: 0, rotate: note.rotation }}
       animate={isDragging ? { scale: 1.06, opacity: 1, rotate: note.rotation - 2 } : { scale: 1, opacity: 1, rotate: note.rotation }}
@@ -579,16 +600,7 @@ function PlacedNote({
               maxLength={100}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  if (text.trim() && noteRef.current) {
-                    const rect = noteRef.current.getBoundingClientRect();
-                    fireConfetti((rect.left + rect.width / 2) / window.innerWidth, (rect.top + rect.height / 2) / window.innerHeight);
-                  }
-                  onSubmit(note.id, text);
-                }
-              }}
+              onKeyDown={(e) => e.stopPropagation()}
               className="w-full resize-none bg-transparent outline-none"
               style={{ fontFamily: "'Space Grotesk', monospace", fontSize: 13, fontWeight: 600, color: "#000", minHeight: 70, lineHeight: 1.6 }}
               placeholder="write something..."
@@ -614,7 +626,7 @@ function PlacedNote({
           </div>
         ) : (
           <div>
-            <p style={{ fontFamily: "'Space Grotesk', monospace", fontSize: 13, fontWeight: 600, color: "#000", lineHeight: 1.6, wordBreak: "break-word" }}>
+            <p style={{ fontFamily: "'Space Grotesk', monospace", fontSize: 13, fontWeight: 600, color: "#000", lineHeight: 1.6, wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
               {note.content}
             </p>
             <div className="mt-2" style={{ fontFamily: "monospace", fontSize: 9, fontWeight: 700, color: "#00000040" }}>
