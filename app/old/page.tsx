@@ -11,7 +11,6 @@ import BrunchContainer from "./components/box-contents-container-server-componen
 import KofetchContainer from "./components/box-contents-container-server-components/KofetchContainer";
 import FEworldContainer from "./components/box-contents-container-server-components/FEworldContainer";
 import BEworldContainer from "./components/box-contents-container-server-components/BEworldContainer";
-import EmptyContainer from "./components/box-contents-container-server-components/EmptyContainer";
 import GithubContainer from "./components/box-contents-container-server-components/GithubContainer";
 import ActivityContainer from "./components/box-contents-container-server-components/ActivityContainer";
 import InfraContainer from "./components/box-contents-container-server-components/InfraContainer";
@@ -58,7 +57,6 @@ export default function Home() {
                 <KofetchContainer />
                 <FEworldContainer />
                 <BEworldContainer />
-                <EmptyContainer />
 
                 <GithubContainer />
                 <InfraContainer />
@@ -90,7 +88,6 @@ export default function Home() {
                 <div className="flex h-2/5 gap-5 bg-slate-100">
                   <FEworldContainer />
                   <BEworldContainer />
-                  <EmptyContainer />
                 </div>
                 <div className="flex grow gap-5 bg-slate-100">
                   <GithubContainer />
