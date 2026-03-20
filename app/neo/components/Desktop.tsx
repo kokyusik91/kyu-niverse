@@ -29,6 +29,7 @@ import InstagramContent from "./instagram/InstagramContent";
 import GamesContent from "./games/GamesContent";
 import PostItBoard from "./postit/PostItContent";
 import NotificationAlert from "./NotificationAlert";
+import MusicPlayer from "./MusicPlayer";
 import type { BlogPostData } from "./NeoDesktop";
 import {
   ContextMenu,
@@ -490,6 +491,7 @@ export default function Desktop({
           ))}
 
           <NotificationAlert />
+          <MusicPlayer />
 
           <div onClick={(e) => e.stopPropagation()} data-taskbar>
             <Taskbar />

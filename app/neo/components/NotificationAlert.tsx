@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Bell, X, StickyNote } from "lucide-react";
+import {
+  Bell,
+  X,
+  StickyNote,
+  Music,
+  Droplets,
+  Sunrise,
+  Flame,
+} from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 
 const NOTIFICATION_DELAY_MS = 1500;
@@ -13,6 +21,51 @@ interface NotificationItem {
 }
 
 const NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: "music",
+    content: (
+      <>
+        <div className="flex items-center gap-2">
+          <Music className="text-neo-text size-5" strokeWidth={2.5} />
+          <p className="font-neo-heading text-neo-text text-lg leading-snug font-bold">
+            <span className="bg-neo-primary border-neo-border inline-block rotate-1 rounded-md border-2 px-1.5 py-0.5">
+              Music Player
+            </span>{" "}
+            등장!
+          </p>
+        </div>
+        <p className="text-neo-text mt-3 text-sm leading-relaxed font-semibold">
+          우측 상단의{" "}
+          <span className="bg-neo-primary border-neo-border inline-flex size-5 -translate-y-px items-center justify-center rounded-full border-2 align-middle">
+            <Music className="size-3" strokeWidth={3} />
+          </span>{" "}
+          버튼을 눌러보세요!
+        </p>
+        <p className="text-neo-text mt-2 text-xs leading-relaxed font-medium">
+          SUNO AI로 만든 Lo-fi 트랙{" "}
+          <span className="bg-neo-accent border-neo-border inline-block -rotate-1 rounded-md border-2 px-1.5 py-0.5 text-[10px] font-black">
+            3곡
+          </span>{" "}
+          수록
+        </p>
+        <div className="mt-2 flex gap-1.5">
+          {[
+            { icon: Droplets, name: "Neon Tears" },
+            { icon: Sunrise, name: "Dawn Blue" },
+            { icon: Flame, name: "残り火" },
+          ].map(({ icon: Icon, name }) => (
+            <span
+              key={name}
+              className="bg-neo-info border-neo-border flex items-center gap-1 rounded-md border-2 px-1.5 py-0.5 text-[10px] font-bold"
+            >
+              <Icon className="size-3" strokeWidth={2.5} />
+              {name}
+            </span>
+          ))}
+        </div>
+      </>
+    ),
+  },
   {
     id: "postit",
     content: (
