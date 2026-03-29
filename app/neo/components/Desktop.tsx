@@ -28,6 +28,9 @@ import BookstoreContent from "./bookstore/BookstoreContent";
 import InstagramContent from "./instagram/InstagramContent";
 import GamesContent from "./games/GamesContent";
 import PostItBoard from "./postit/PostItContent";
+import FlightRadarContent from "./playground/FlightRadarContent";
+// import JetstreamContent from "./playground/JetstreamContent";
+import EarthquakeContent from "./playground/EarthquakeContent";
 import NotificationAlert from "./NotificationAlert";
 import MusicPlayer from "./MusicPlayer";
 import type { BlogPostData } from "./NeoDesktop";
@@ -133,6 +136,13 @@ function getWindowContent(
       return <InstagramContent />;
     case "games":
       return <GamesContent />;
+    case "flight-radar":
+      return <FlightRadarContent />;
+    // TODO: 컨텐츠 검토후 반영예정
+    // case "jetstream":
+    //   return <JetstreamContent />;
+    case "earthquake":
+      return <EarthquakeContent />;
     default: {
       const item = DESKTOP_ITEMS.find((d) => d.id === id);
       return (
@@ -473,7 +483,9 @@ export default function Desktop({
 
           {selRect && <SelectionOverlay rect={selRect} />}
 
-          {DESKTOP_ITEMS.map((item) => (
+          {DESKTOP_ITEMS.filter(
+            (item) => !("hideFromDesktop" in item && item.hideFromDesktop),
+          ).map((item) => (
             <DesktopIcon
               key={item.id}
               id={item.id}
