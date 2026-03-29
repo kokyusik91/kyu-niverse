@@ -85,6 +85,15 @@ export const DESKTOP_ITEMS = [
     defaultSize: { width: 960, height: 600 },
   },
   {
+    id: "anime",
+    title: "애니.exe",
+    icon: "🎬",
+    color: "#FF6B6B",
+    bgClass: "bg-neo-primary",
+    defaultPos: { x: 200, y: 80 },
+    defaultSize: { width: 900, height: 600 },
+  },
+  {
     id: "flight-radar",
     title: "Flight Radar.exe",
     icon: "✈️",

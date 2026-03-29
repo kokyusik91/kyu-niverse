@@ -31,6 +31,7 @@ import PostItBoard from "./postit/PostItContent";
 import FlightRadarContent from "./playground/FlightRadarContent";
 // import JetstreamContent from "./playground/JetstreamContent";
 import EarthquakeContent from "./playground/EarthquakeContent";
+import AnimeContent from "./anime/AnimeContent";
 import NotificationAlert from "./NotificationAlert";
 import MusicPlayer from "./MusicPlayer";
 import type { BlogPostData } from "./NeoDesktop";
@@ -143,6 +144,8 @@ function getWindowContent(
     //   return <JetstreamContent />;
     case "earthquake":
       return <EarthquakeContent />;
+    case "anime":
+      return <AnimeContent />;
     default: {
       const item = DESKTOP_ITEMS.find((d) => d.id === id);
       return (
