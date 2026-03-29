@@ -84,6 +84,36 @@ export const DESKTOP_ITEMS = [
     defaultPos: { x: 240, y: 100 },
     defaultSize: { width: 960, height: 600 },
   },
+  {
+    id: "flight-radar",
+    title: "Flight Radar.exe",
+    icon: "✈️",
+    color: "#339AF0",
+    bgClass: "bg-neo-info",
+    defaultPos: { x: 160, y: 60 },
+    defaultSize: { width: 900, height: 560 },
+    hideFromDesktop: true,
+  },
+  {
+    id: "jetstream",
+    title: "Jetstream.exe",
+    icon: "🌊",
+    color: "#4ECDC4",
+    bgClass: "bg-neo-secondary",
+    defaultPos: { x: 200, y: 80 },
+    defaultSize: { width: 850, height: 540 },
+    hideFromDesktop: true,
+  },
+  {
+    id: "earthquake",
+    title: "Earthquake.exe",
+    icon: "🌍",
+    color: "#FF922B",
+    bgClass: "bg-neo-warning",
+    defaultPos: { x: 180, y: 70 },
+    defaultSize: { width: 860, height: 560 },
+    hideFromDesktop: true,
+  },
 ];
 
 const DESKTOP_ITEMS_BY_ID = Object.fromEntries(

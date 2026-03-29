@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useWindowState, DESKTOP_ITEMS } from "./WindowManager";
-import { PenLine, Globe, Settings } from "lucide-react";
+import { PenLine, Globe, Settings, Plane, Waves, Activity } from "lucide-react";
 import GithubIcon from "./icons/GithubIcon";
 
 interface MenuItemBase {
@@ -77,6 +77,27 @@ const MENU_ITEMS: TopMenu[] = [
               "https://jamsilcrops-library.notion.site/kyusik-s-BE-World-ed1f4b6b63ef4dadb54c381c68ed49f8",
           },
         ],
+      },
+    ],
+  },
+  {
+    label: "Playground",
+    children: [
+      {
+        label: "Flight Radar",
+        icon: <Plane className="text-neo-info size-4" />,
+        action: "flight-radar",
+      },
+      // {
+      //   label: "Jetstream",
+      //   icon: <Waves className="size-4 text-neo-secondary" />,
+      //   action: "jetstream",
+      // },
+      { type: "separator" },
+      {
+        label: "Earthquake",
+        icon: <Activity className="size-4 text-[#FF922B]" />,
+        action: "earthquake",
       },
     ],
   },
