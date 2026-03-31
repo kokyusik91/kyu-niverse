@@ -34,6 +34,7 @@ export interface AnimeDetail {
   duration: string | null;
   ageRating: string | null;
   synopsis: string | null;
+  synopsisKr: string | null;
   malUrl: string | null;
 }
 
@@ -77,6 +78,8 @@ export interface Character {
   voiceActorJp: string | null;
   voiceActorEn: string | null;
   voiceActorKr: string | null;
+  description: string | null;
+  descriptionKr: string | null;
   createdAt: number;
 }
 
@@ -126,6 +129,7 @@ export interface CharacterListResponse {
 
 export type AnimeViewState =
   | { view: "list" }
+  | { view: "upcoming" }
   | { view: "detail"; animeId: number }
   | { view: "characters"; animeId: number };
 

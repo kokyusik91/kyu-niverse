@@ -9,13 +9,13 @@ import type {
 const API_BASE = process.env.NEXT_PUBLIC_KYUNO_API_URL;
 
 export async function fetchAnimeList(): Promise<AnimeListResponse> {
-  const res = await fetch(`${API_BASE}/api/anime?limit=100`);
+  const res = await fetch(`${API_BASE}/api/anime?limit=100&mainOnly=true`);
   if (!res.ok) throw new Error("Failed to fetch anime list");
   return res.json();
 }
 
 export async function fetchUpcomingAnime(): Promise<AnimeListResponse> {
-  const res = await fetch(`${API_BASE}/api/anime/upcoming?limit=5`);
+  const res = await fetch(`${API_BASE}/api/anime/upcoming?limit=10`);
   if (!res.ok) throw new Error("Failed to fetch upcoming anime");
   return res.json();
 }
