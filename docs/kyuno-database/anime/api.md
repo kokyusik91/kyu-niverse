@@ -73,6 +73,7 @@ upcoming(방영 예정작)을 **제외**한 애니 목록. Finished Airing + Cur
       "duration": "24 min per ep",
       "ageRating": "R - 17+ (violence & profanity)",
       "synopsis": "Denji is robbed of a normal teenage life...",
+      "synopsisKr": "덴지는 평범한 십대의 삶을 빼앗기고...",
       "malUrl": "https://myanimelist.net/anime/44511/Chainsaw_Man"
     }
   }],
@@ -166,6 +167,8 @@ upcoming(방영 예정작)을 **제외**한 애니 목록. Finished Airing + Cur
     "voiceActorJp": "토다 키쿠노스케",
     "voiceActorEn": "Strange, Ciarán",
     "voiceActorKr": "Shin, Na-ri",
+    "description": "The main protagonist of Chainsaw Man...",
+    "descriptionKr": "체인소 맨의 주인공으로...",
     "createdAt": 1774416444
   }],
   "meta": { "total": 50, "page": 1, "limit": 50 }
@@ -174,7 +177,7 @@ upcoming(방영 예정작)을 **제외**한 애니 목록. Finished Airing + Cur
 
 ### GET /api/anime/:animeId/characters/:charId
 
-캐릭터 단건 조회. 응답 구조 동일.
+캐릭터 단건 조회. 응답 구조 동일 (description, descriptionKr 포함).
 
 ---
 
@@ -271,5 +274,8 @@ vis.js 호환 그래프 데이터 (nodes + edges).
 |---|---|
 | 본 애니 (Finished/Currently Airing) | ~28 |
 | Upcoming (Not yet aired) | ~472 |
-| 캐릭터 | 498 |
+| 캐릭터 | 503 |
+| 캐릭터 description 보유 | 314 (189명은 MAL에 설명 없음) |
+| 캐릭터 description_kr 번역 | 314 |
+| 애니 synopsis_kr 번역 | 559 |
 | 출연 정보 (appearances) | 842 |
