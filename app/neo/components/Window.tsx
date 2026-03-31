@@ -16,11 +16,13 @@ import { useDrag } from "../hooks/useDrag";
 import BlogIcon from "./icons/BlogIcon";
 import InstagramIcon from "./icons/InstagramIcon";
 import GamesIcon from "./icons/GamesIcon";
+import AnimeIcon from "./icons/AnimeIcon";
 
 const WINDOW_ICONS: Record<string, ReactNode> = {
   blog: <BlogIcon size={18} />,
   instagram: <InstagramIcon size={18} />,
   games: <GamesIcon size={18} />,
+  anime: <AnimeIcon size={18} />,
 };
 
 type AnimState = "opening" | "closing" | "minimizing" | "restoring" | "idle";

@@ -26,11 +26,12 @@ import {
 import BlogContent from "./BlogContent";
 import BookstoreContent from "./bookstore/BookstoreContent";
 import InstagramContent from "./instagram/InstagramContent";
-import GamesContent from "./games/GamesContent";
+import GamesV2Content from "./games-v2/GamesV2Content";
 import PostItBoard from "./postit/PostItContent";
 import FlightRadarContent from "./playground/FlightRadarContent";
 // import JetstreamContent from "./playground/JetstreamContent";
 import EarthquakeContent from "./playground/EarthquakeContent";
+import AnimeContent from "./anime/AnimeContent";
 import NotificationAlert from "./NotificationAlert";
 import MusicPlayer from "./MusicPlayer";
 import type { BlogPostData } from "./NeoDesktop";
@@ -135,12 +136,14 @@ function getWindowContent(
     case "instagram":
       return <InstagramContent />;
     case "games":
-      return <GamesContent />;
+      return <GamesV2Content />;
     case "flight-radar":
       return <FlightRadarContent />;
     // TODO: 컨텐츠 검토후 반영예정
     // case "jetstream":
     //   return <JetstreamContent />;
+    case "anime":
+      return <AnimeContent />;
     case "earthquake":
       return <EarthquakeContent />;
     default: {

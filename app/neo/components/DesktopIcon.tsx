@@ -7,6 +7,7 @@ import BlogIcon from "./icons/BlogIcon";
 import BookstoreIcon from "./icons/BookstoreIcon";
 import InstagramIcon from "./icons/InstagramIcon";
 import GamesIcon from "./icons/GamesIcon";
+import AnimeIcon from "./icons/AnimeIcon";
 
 const CUSTOM_ICONS: Record<string, ReactNode> = {
   resume: <ResumeIcon />,
@@ -14,6 +15,7 @@ const CUSTOM_ICONS: Record<string, ReactNode> = {
   bookstore: <BookstoreIcon />,
   instagram: <InstagramIcon />,
   games: <GamesIcon />,
+  anime: <AnimeIcon />,
 };
 
 interface DesktopIconProps {

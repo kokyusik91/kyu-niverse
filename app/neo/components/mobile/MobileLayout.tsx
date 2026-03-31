@@ -8,7 +8,7 @@ import MobileBlogList from "./MobileBlogList";
 import MobileBlogDetail from "./MobileBlogDetail";
 import MobileNotification from "./MobileNotification";
 import InstagramContent from "../instagram/InstagramContent";
-import GamesContent from "../games/GamesContent";
+import GamesV2Content from "../games-v2/GamesV2Content";
 import {
   ResumeContent,
   PlaceholderContent,
@@ -160,7 +160,7 @@ function renderAppContent(appId: string) {
     case "instagram":
       return <InstagramContent />;
     case "games":
-      return <GamesContent />;
+      return <GamesV2Content />;
     case "resume":
       return <ResumeContent />;
     default:
