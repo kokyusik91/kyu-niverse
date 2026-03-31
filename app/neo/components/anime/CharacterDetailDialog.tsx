@@ -1,122 +1,220 @@
 "use client";
 
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import type { Character } from "./types";
+import { useQuery } from "@tanstack/react-query";
+import type { Character, CharacterSummary } from "./types";
+
+const API_BASE = process.env.NEXT_PUBLIC_KYUNO_API_URL;
 
 interface CharacterDetailDialogProps {
-  character: Character | null;
+  character: Character | CharacterSummary | null;
+  animeId?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+function isFullCharacter(c: Character | CharacterSummary): c is Character {
+  return "voiceActorJp" in c;
+}
+
+async function fetchCharacterDetail(
+  animeId: number,
+  charId: number,
+): Promise<Character> {
+  const res = await fetch(
+    `${API_BASE}/api/anime/${animeId}/characters/${charId}`,
+  );
+  if (!res.ok) throw new Error("Failed to fetch character detail");
+  const json = await res.json();
+  return json.data;
+}
+
 export default function CharacterDetailDialog({
   character,
+  animeId,
   open,
   onOpenChange,
 }: CharacterDetailDialogProps) {
+  const [showOriginal, setShowOriginal] = useState(false);
+
+  const needsFetch = !!character && !isFullCharacter(character) && !!animeId;
+
+  const { data: fullCharacter } = useQuery({
+    queryKey: ["character-detail", animeId, character?.id],
+    queryFn: () => fetchCharacterDetail(animeId!, character!.id),
+    enabled: open && needsFetch,
+  });
+
   if (!character) return null;
 
-  const displayName = character.nameKr ?? character.nameEn ?? "Unknown";
+  const char: Character | CharacterSummary = fullCharacter ?? character;
+  const displayName = char.nameKr ?? char.nameEn ?? "Unknown";
+  const full = isFullCharacter(char) ? char : null;
+  const hasDescription = full?.description || full?.descriptionKr;
+  const descriptionText = showOriginal
+    ? full?.description
+    : (full?.descriptionKr ?? full?.description);
+
+  const roleTag =
+    char.role === "Main"
+      ? "주인공"
+      : char.role === "Supporting"
+        ? "조연"
+        : char.role;
+  const roleBg = char.role === "Main" ? "bg-[#FEF9C3]" : "bg-[#E0F2FE]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-neo-border shadow-neo-lg max-w-[440px] overflow-hidden rounded-2xl border-[5px] bg-white p-0 [&>button:last-child]:hidden">
+      <DialogContent className="max-w-[460px] overflow-hidden rounded-2xl border-3 border-[#1a1a1a] bg-white p-0 text-[#1a1a1a] shadow-[6px_6px_0_#1a1a1a] [&>button:last-child]:hidden">
         <VisuallyHidden>
           <DialogTitle>{displayName} 상세</DialogTitle>
         </VisuallyHidden>
 
-        <div className="flex gap-0">
-          {/* Character image */}
-          <div className="border-neo-border h-[320px] w-[160px] shrink-0 overflow-hidden border-r-3 bg-gray-100">
-            {character.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={character.imageUrl}
-                alt={displayName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-4xl text-gray-300">
-                👤
+        <div className="scrollbar-hide flex max-h-[80vh] flex-col overflow-y-auto">
+          {/* Banner + Avatar */}
+          <div className="relative">
+            {/* Banner */}
+            <div className="h-[120px] w-full overflow-hidden bg-gradient-to-br from-[#1a1a2e] to-[#2d2b55]">
+              {char.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={char.imageUrl}
+                  alt=""
+                  className="h-full w-full object-cover opacity-40 blur-sm"
+                />
+              )}
+              <div className="absolute inset-x-0 top-0 h-[120px] bg-gradient-to-b from-[#1a1a2e40] to-[#1a1a2ecc]" />
+            </div>
+
+            {/* Avatar - overlapping banner */}
+            <div className="absolute top-[55px] left-1/2 -translate-x-1/2">
+              <div className="flex h-[120px] w-[120px] items-center justify-center overflow-hidden rounded-full border-3 border-[#1a1a1a] bg-white shadow-[4px_4px_0_#1a1a1a]">
+                {char.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={char.imageUrl}
+                    alt={displayName}
+                    className="h-[110px] w-[110px] rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl text-gray-300">👤</span>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
-          {/* Character info */}
-          <div className="neo-scrollbar flex-1 overflow-y-auto p-4">
-            <h2 className="font-neo-heading text-lg font-black">
+          {/* Name & Tags Section */}
+          <div className="flex flex-col items-center gap-2 px-7 pt-[60px] pb-2">
+            <h2 className="font-neo-heading text-[22px] font-extrabold text-[#1a1a1a]">
               {displayName}
             </h2>
-            <p className="mt-0.5 text-xs text-gray-400">
-              {[character.nameEn, character.nameJp]
-                .filter(Boolean)
-                .join(" · ")}
+            <p className="text-xs font-medium text-gray-400">
+              {[char.nameEn, char.nameJp].filter(Boolean).join(" · ")}
             </p>
 
-            <div className="mt-4 space-y-2.5">
-              {character.role && (
-                <InfoRow label="역할" value={character.role} />
+            {/* Tags */}
+            <div className="mt-1 flex items-center gap-1.5">
+              {roleTag && (
+                <span
+                  className={`rounded-md border-2 border-[#1a1a1a] ${roleBg} px-2.5 py-0.5 text-[10px] font-bold text-[#1a1a1a]`}
+                >
+                  {roleTag}
+                </span>
               )}
-              {character.gender && (
-                <InfoRow label="성별" value={character.gender} />
+              {full?.species && (
+                <span className="rounded-md border-2 border-[#1a1a1a] bg-[#FF6B6B] px-2.5 py-0.5 text-[10px] font-bold text-white">
+                  {full.species}
+                </span>
               )}
-              {character.species && (
-                <InfoRow label="종족" value={character.species} />
+              {char.gender && (
+                <span className="rounded-md border-2 border-[#1a1a1a] bg-[#C4B5FD] px-2.5 py-0.5 text-[10px] font-bold text-[#1a1a1a]">
+                  {char.gender === "Male"
+                    ? "남"
+                    : char.gender === "Female"
+                      ? "여"
+                      : char.gender}
+                </span>
               )}
-              {character.age && (
-                <InfoRow label="나이" value={character.age} />
+            </div>
+          </div>
+
+          {/* Info Section */}
+          <div className="flex flex-col gap-3.5 px-7 pt-2 pb-6">
+            {/* Stats Row */}
+            <div className="flex gap-2.5">
+              {char.favorites != null && (
+                <StatCard
+                  value={char.favorites.toLocaleString()}
+                  label="인기도"
+                  valueColor="text-[#FF6B6B]"
+                />
               )}
-              {character.favorites != null && (
-                <InfoRow
-                  label="즐겨찾기"
-                  value={character.favorites.toLocaleString()}
+              {full?.age && <StatCard value={full.age} label="나이" />}
+              {char.role && (
+                <StatCard
+                  value={
+                    char.role === "Main"
+                      ? "주요"
+                      : char.role === "Supporting"
+                        ? "조연"
+                        : char.role
+                  }
+                  label="역할"
+                  valueColor="text-[#C084FC]"
                 />
               )}
             </div>
 
-            {/* Voice actors */}
-            {(character.voiceActorJp ||
-              character.voiceActorEn ||
-              character.voiceActorKr) && (
-              <div className="border-neo-border mt-4 rounded-lg border-2 bg-gray-50 p-3">
-                <p className="font-neo-heading mb-2 text-[10px] font-black tracking-[2px] text-gray-400">
-                  VOICE ACTORS
-                </p>
-                <div className="space-y-1 text-xs">
-                  {character.voiceActorJp && (
-                    <p>
-                      <span className="font-bold text-gray-500">JP</span>{" "}
-                      {character.voiceActorJp}
+            {/* Voice Actors */}
+            {full &&
+              (full.voiceActorJp || full.voiceActorEn || full.voiceActorKr) && (
+                <>
+                  <div className="h-px w-full bg-gray-200" />
+                  <div className="rounded-[10px] border border-gray-200 bg-[#F9FAFB] p-3">
+                    <p className="mb-1.5 text-[9px] font-bold tracking-[1.5px] text-gray-400">
+                      VOICE ACTORS
                     </p>
-                  )}
-                  {character.voiceActorEn && (
-                    <p>
-                      <span className="font-bold text-gray-500">EN</span>{" "}
-                      {character.voiceActorEn}
-                    </p>
-                  )}
-                  {character.voiceActorKr && (
-                    <p>
-                      <span className="font-bold text-gray-500">KR</span>{" "}
-                      {character.voiceActorKr}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+                    <div className="space-y-1">
+                      {full.voiceActorJp && (
+                        <VoiceActorRow lang="JP" name={full.voiceActorJp} />
+                      )}
+                      {full.voiceActorEn && (
+                        <VoiceActorRow lang="EN" name={full.voiceActorEn} />
+                      )}
+                      {full.voiceActorKr && (
+                        <VoiceActorRow lang="KR" name={full.voiceActorKr} />
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
-            {/* MAL link */}
-            {character.malUrl && (
-              <a
-                href={character.malUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="neo-btn bg-neo-accent text-neo-text border-neo-border shadow-neo-sm hover:shadow-none mt-4 flex h-9 items-center justify-center gap-1.5 rounded-lg border-2 text-xs font-bold no-underline transition-all hover:translate-y-[1px]"
-              >
-                <span>↗</span>
-                MAL에서 보기
-              </a>
+            {/* Description */}
+            {hasDescription && (
+              <>
+                <div className="h-px w-full bg-gray-200" />
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-[9px] font-bold tracking-[1.5px] text-gray-400">
+                      DESCRIPTION
+                    </p>
+                    {full?.description && full?.descriptionKr && (
+                      <button
+                        type="button"
+                        onClick={() => setShowOriginal((prev) => !prev)}
+                        className="rounded-md border-2 border-[#1a1a1a] bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-[#1a1a1a] transition-colors hover:bg-gray-200"
+                      >
+                        {showOriginal ? "KR" : "EN"}
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs leading-relaxed text-gray-600">
+                    {descriptionText}
+                  </p>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -125,11 +223,28 @@ export default function CharacterDetailDialog({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function StatCard({
+  value,
+  label,
+  valueColor = "text-[#1a1a1a]",
+}: {
+  value: string;
+  label: string;
+  valueColor?: string;
+}) {
+  return (
+    <div className="flex flex-1 flex-col items-center gap-0.5 rounded-lg border border-gray-200 bg-[#F9FAFB] px-4 py-2">
+      <span className={`text-lg font-extrabold ${valueColor}`}>{value}</span>
+      <span className="text-[10px] font-medium text-gray-400">{label}</span>
+    </div>
+  );
+}
+
+function VoiceActorRow({ lang, name }: { lang: string; name: string }) {
   return (
     <div className="flex items-center gap-2 text-xs">
-      <span className="w-14 shrink-0 font-bold text-gray-400">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <span className="font-extrabold text-[#1a1a1a]">{lang}</span>
+      <span className="font-medium text-[#444]">{name}</span>
     </div>
   );
 }
