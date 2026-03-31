@@ -56,6 +56,11 @@
   - 헤더 탭 토글 (애니 | 캐릭터), 윈도우 내부 뷰 전환 (list ↔ detail)
   - vis-network: Arc별 캐릭터 관계도
   - 환경변수: `NEXT_PUBLIC_KYUNO_API_URL` (kyuno-database API)
+- Game Hub v2 구현 완료 (기존 games/ 대체)
+  - `app/neo/components/games-v2/` — 8개 파일 (GamesV2Content, StatCards, UpcomingSection, MyGamesSection, RankingsSection, DealsSection, api, types)
+  - 섹션 순서: Stats → Upcoming PS5 → My Games → Hot Games → Deals
+  - API: `/api/games`, `/api/games/stats`, `/api/games/rankings`, `/api/games/deals`, `/api/games/upcoming`
+  - 환경변수: `NEXT_PUBLIC_KYUNO_API_URL` (kyuno-database API, Anime과 공유)
 - 다음 작업: 콘텐츠 채우기 (이력서, 포트폴리오, FE World 등)
 
 ## 프로젝트 문서
