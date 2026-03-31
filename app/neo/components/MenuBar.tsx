@@ -16,7 +16,6 @@ interface MenuItemBase {
   icon?: ReactNode;
   action?: string;
   children?: MenuNode[];
-  disabled?: boolean;
 }
 interface MenuSeparator {
   type: "separator";
@@ -65,7 +64,6 @@ const MENU_ITEMS: TopMenu[] = [
             icon: <Globe className="text-neo-info size-4" />,
             action:
               "https://jamsilcrops-library.notion.site/kyusik-s-FE-World-d6077115dfaa4e66bbf60316183d7b60?pvs=4",
-            disabled: true,
           },
         ],
       },
@@ -134,17 +132,16 @@ function SubMenuItem({
       }}
     >
       <button
-        disabled={item.disabled}
         onClick={() => {
-          if (item.action && !item.disabled) {
+          if (item.action) {
             onAction(item.action);
             onClose();
           }
         }}
-        className="font-inherit text-neo-text flex w-full cursor-default items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[13px] font-semibold transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="font-inherit text-neo-text flex w-full cursor-default items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[13px] font-semibold transition-colors duration-100"
         style={{
-          background: highlighted && !item.disabled ? "#FFE66D" : "transparent",
-          border: highlighted && !item.disabled ? "2px solid #1A1A2E" : "2px solid transparent",
+          background: highlighted ? "#FFE66D" : "transparent",
+          border: highlighted ? "2px solid #1A1A2E" : "2px solid transparent",
           boxShadow: "none",
           minWidth: 0,
           minHeight: 0,
