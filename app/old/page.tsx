@@ -63,7 +63,7 @@ export default function Home() {
                 <ActivityContainer />
               </div>
             </div>
-            {/* 데스크탑 레이아웃 */}
+            {/* 데스크탑 레이아웃 2*/}
             <div className="hidden h-[1000px] w-full gap-5 bg-slate-100 lg:flex">
               <div className="flex h-full w-2/6 flex-col gap-5 bg-slate-100">
                 <div className="flex w-full grow gap-5">
