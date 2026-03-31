@@ -10,9 +10,13 @@ import UpcomingDetailDialog from "./UpcomingDetailDialog";
 
 interface AnimeListViewProps {
   onSelectAnime: (id: number) => void;
+  onViewAllUpcoming: () => void;
 }
 
-export default function AnimeListView({ onSelectAnime }: AnimeListViewProps) {
+export default function AnimeListView({
+  onSelectAnime,
+  onViewAllUpcoming,
+}: AnimeListViewProps) {
   const { data: upcomingData, isLoading: upcomingLoading } = useQuery({
     queryKey: ["anime-upcoming"],
     queryFn: fetchUpcomingAnime,
@@ -28,7 +32,11 @@ export default function AnimeListView({ onSelectAnime }: AnimeListViewProps) {
   );
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const upcoming = upcomingData?.data ?? [];
+  const upcoming = [...(upcomingData?.data ?? [])].sort((a, b) => {
+    const dateA = a.anime.airedFrom ? new Date(a.anime.airedFrom).getTime() : Infinity;
+    const dateB = b.anime.airedFrom ? new Date(b.anime.airedFrom).getTime() : Infinity;
+    return dateA - dateB;
+  });
   const myAnime = animeData?.data ?? [];
   const isLoading = upcomingLoading || animeLoading;
 
@@ -47,14 +55,19 @@ export default function AnimeListView({ onSelectAnime }: AnimeListViewProps) {
       {/* Coming Soon Section */}
       {upcoming.length > 0 && (
         <section className="space-y-3 px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="border-neo-border flex h-8 w-8 items-center justify-center rounded-md border-3 bg-[#FACC15] shadow-[3px_3px_0_#1a1a1a]">
-              <span className="text-sm">📺</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <h2 className="font-neo-heading text-neo-text text-lg font-black tracking-wide">
+                COMING SOON
+              </h2>
+              <span className="text-sm text-gray-400">방영예정</span>
             </div>
-            <h2 className="font-neo-heading text-neo-text text-lg font-black tracking-wide">
-              COMING SOON
-            </h2>
-            <span className="text-sm text-gray-400">방영예정</span>
+            <button
+              onClick={onViewAllUpcoming}
+              className="flex items-center gap-1 text-xs font-semibold text-gray-400 transition-colors hover:text-gray-600"
+            >
+              View All →
+            </button>
           </div>
 
           <div className="flex gap-3.5 overflow-x-auto pb-1">
@@ -78,7 +91,6 @@ export default function AnimeListView({ onSelectAnime }: AnimeListViewProps) {
       <section className="px-5 pb-5">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm">📺</span>
             <h2 className="font-neo-heading text-neo-text text-base font-black">
               MY COLLECTION
             </h2>

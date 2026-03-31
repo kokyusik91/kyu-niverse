@@ -30,7 +30,7 @@ export default function UpcomingCard({
   return (
     <button
       onClick={onClick}
-      className="border-neo-border cursor-pointer rounded-[10px] border-3 p-3 text-left transition-transform hover:scale-[1.03]"
+      className="border-neo-border flex h-[140px] cursor-pointer flex-col rounded-[10px] border-3 p-3 text-left"
       style={{
         backgroundColor: color,
         boxShadow: "4px 4px 0 #1a1a1a",
@@ -52,11 +52,13 @@ export default function UpcomingCard({
       <p className="font-neo-heading text-neo-text line-clamp-2 text-xs font-bold">
         {anime.items_base.name}
       </p>
-      {dday && (
-        <span className="bg-neo-bg border-neo-border mt-1.5 inline-block rounded-md border-2 px-2 py-0.5 text-[10px] font-bold">
-          {dday}
-        </span>
-      )}
+      <div className="mt-auto">
+        {dday && (
+          <span className="bg-neo-bg border-neo-border mt-1.5 inline-block rounded-md border-2 px-2 py-0.5 text-[10px] font-bold">
+            {dday}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
